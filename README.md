@@ -1,5 +1,7 @@
 # Ray tracing in Rust and WebAssembly
 
+A live demo of the current code should be available at https://aga3.xyz/wasm-ray
+
 This is a project to help me learn more about:
 * Ray tracing
 * Rust
