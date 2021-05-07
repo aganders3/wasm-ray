@@ -1,0 +1,11 @@
+.vscode
+
+/target
+**/*.rs.bk
+bin/
+pkg/
+wasm-pack.log
+
+www/node_modules
+www/dist
+www/.bin
