@@ -34,5 +34,9 @@ jobs:
       - name: Build for dist
         run: make init && make dist
 
-      # TODO: push dist files to live branch
-
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./www/dist
+          publish_branch: live
