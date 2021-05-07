@@ -9,3 +9,4 @@ wasm-pack.log
 www/node_modules
 www/dist
 www/.bin
+www/package-lock.json

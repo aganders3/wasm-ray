@@ -9,3 +9,6 @@ run:
 
 dist:
 	wasm-pack build && cd www && ./node_modules/.bin/webpack
+
+ci:
+	cd www && npm ci
