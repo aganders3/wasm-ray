@@ -1,3 +1,6 @@
+init:
+	cd www && npm install
+
 build:
 	wasm-pack build
 
