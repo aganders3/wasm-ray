@@ -54,12 +54,15 @@ fn hit_sphere(ray: &Ray, center: Point, radius: f32) -> f32 {
 }
 
 #[wasm_bindgen]
-pub fn trace_rays() -> Vec<u8> {
+pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
     // image
     let mut flat_image: Vec<u8> = Vec::new();
-    let aspect_ratio = 16.0 / 9.0;
-    let image_width: usize = 400;
-    let image_height: usize = ((image_width as f32) / aspect_ratio) as usize;
+    let image_width = width as usize;
+    let image_height= height as usize;
+    let aspect_ratio = (image_width as f32) / (image_height as f32);
+    // let aspect_ratio = 16.0 / 9.0;
+    // let image_width: usize = 400;
+    // let image_height: usize = (image_width as f32 / aspect_ratio) as usize;
 
     // camera
     // TODO: make a separate struct?
