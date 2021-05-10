@@ -62,7 +62,7 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
             let u = (i as f32) / (image_width as f32);
             let v = 1.0 - (j as f32) / (image_height as f32);
             let ray = Ray{
-                origin: origin,
+                origin,
                 direction: lower_left_corner + u*horizontal + v*vertical - origin,
             };
             world.closest_so_far = f32::MAX;
@@ -88,5 +88,5 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
             flat_image.push(color.a);
         }
     }
-    return flat_image
+    flat_image
 }

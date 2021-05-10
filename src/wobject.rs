@@ -41,10 +41,10 @@ impl Wobject for Sphere {
                 return Some(Hit{
                     p: ray.at(t),
                     normal: (ray.at(t) - self.center).unit(),
-                    t: t,
+                    t,
                 })
             }
         }
-        return None
+        None
     }
 }
