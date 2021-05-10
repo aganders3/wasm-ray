@@ -7,6 +7,8 @@ pub struct Vec3 {
     pub y: f32,
     pub z: f32,
 }
+pub type Point = Vec3;
+
 
 impl Vec3 {
     pub fn dot(&self, other: &Self) -> f32 {

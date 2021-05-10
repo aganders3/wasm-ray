@@ -2,13 +2,14 @@ use wasm_bindgen::prelude::*;
 
 #[macro_use]
 mod utils;
+mod ray;
+use ray::{Color, Ray};
 
 mod vec3;
-use vec3::Vec3;
-type Point = Vec3;
+use vec3::{Point, Vec3};
+mod wobject;
+use crate::wobject::World;
 
-#[derive(Clone, Copy, Debug)]
-struct Color{r: u8, g: u8, b:u8, a: u8}
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -16,42 +17,6 @@ struct Color{r: u8, g: u8, b:u8, a: u8}
 #[global_allocator]
 static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
-struct Ray {
-    origin: Point,
-    direction: Vec3,
-}
-
-impl Ray {
-    pub fn at(&self, t: f32) -> Vec3 {
-        self.origin + t * self.direction
-    }
-
-    pub fn color(&self) -> Color {
-        let t = 0.5 * (self.direction.unit().y + 1.0);
-        Color{
-            r: ((1.0 - t) * 255. + t * 128.) as u8,
-            g: ((1.0 - t) * 255. + t * 178.) as u8,
-            b: 255,
-            a: 255,
-        }
-    }
-
-    // TODO: add fn 'hit' that takes a geometry object
-}
-
-fn hit_sphere(ray: &Ray, center: Point, radius: f32) -> f32 {
-    let oc = ray.origin - center;
-    let a = ray.direction.dot(&ray.direction);
-    let b = 2.0 * oc.dot(&ray.direction);
-    let c = oc.dot(&oc) - radius*radius;
-    let discriminant = b * b - 4.0 * a * c;
-
-    if discriminant < 0.0 {
-        return -1.0
-    } else {
-        return (-b - discriminant.sqrt()) / (2.0 * a);
-    }
-}
 
 #[wasm_bindgen]
 pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
@@ -60,12 +25,9 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
     let image_width = width as usize;
     let image_height= height as usize;
     let aspect_ratio = (image_width as f32) / (image_height as f32);
-    // let aspect_ratio = 16.0 / 9.0;
-    // let image_width: usize = 400;
-    // let image_height: usize = (image_width as f32 / aspect_ratio) as usize;
 
     // camera
-    // TODO: make a separate struct?
+    // TODO: move camera class to a separate module
     let viewport_height = 2.0;
     let viewport_width = aspect_ratio * viewport_height;
     let focal_length = 1.0;
@@ -74,6 +36,25 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
     let vertical = Vec3{x: 0.0, y: viewport_height, z: 0.0};
     let center = Point{x: 0.0, y: 0.0, z: -focal_length};
     let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 + center;
+
+    // world
+    let sphere = Box::new(wobject::Sphere{
+        center: Point{x: 0.0, y: 0.0, z: -1.0},
+        radius: 0.5,
+    });
+
+    let ground = Box::new(wobject::Sphere{
+        center: Point{x: 0.0, y: -100.5, z: -1.0},
+        radius: 100.0,
+    });
+
+    let mut world = World{
+        wobjects: Vec::new(),
+        closest_so_far: f32::MAX,
+    };
+
+    world.insert(sphere);
+    world.insert(ground);
 
     // render
     for j in 0..image_height {
@@ -84,26 +65,27 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
                 origin: origin,
                 direction: lower_left_corner + u*horizontal + v*vertical - origin,
             };
-
-            let color: Color;
-            let t = hit_sphere(&ray, Point{x: 0.0, y: 0.0, z: -1.0}, 0.5);
-            
-            if t < 0.0 {
-                color = ray.color();
-            } else {
-                let normal = (ray.at(t) - center).unit();
-                color = Color{
-                    r: (128. + 128.*normal.x) as u8,
-                    g: (128. + 128.*normal.y) as u8,
-                    b: (128. + 128.*normal.z) as u8,
-                    a: 255,
-                };
+            world.closest_so_far = f32::MAX;
+                
+            // TODO: don't calculate background color unless not hit
+            // TODO: only calculate normal if closest hit
+            let mut color = ray.color();
+            for item in world.wobjects.iter() {
+                if let Some(hit) = item.hit(&ray, 0.0, world.closest_so_far) {
+                    let normal = hit.normal;
+                    color = Color{
+                        r: (128. + 128.*normal.x) as u8,
+                        g: (128. + 128.*normal.y) as u8,
+                        b: (128. + 128.*normal.z) as u8,
+                        a: 255,
+                    };
+                    world.closest_so_far = hit.t;
+                }
             }
             flat_image.push(color.r);
             flat_image.push(color.g);
             flat_image.push(color.b);
             flat_image.push(color.a);
-            // log!("{} {} {:?}", i, j, col);
         }
     }
     return flat_image
