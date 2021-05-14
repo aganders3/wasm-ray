@@ -8,8 +8,11 @@ use ray::{Color, Ray};
 mod vec3;
 use vec3::{Point, Vec3};
 mod wobject;
-use crate::wobject::World;
-
+use wobject::World;
+mod camera;
+use camera::Camera;
+mod image;
+use image::Image;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -19,36 +22,28 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 
 #[wasm_bindgen]
-pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
+pub fn trace_rays(width: u32, height: u32) -> *const u8 {
     // image
-    let mut flat_image: Vec<u8> = Vec::new();
     let image_width = width as usize;
     let image_height= height as usize;
-    let aspect_ratio = (image_width as f32) / (image_height as f32);
+
+    let mut image = Image::new(image_height, image_width);
 
     // camera
-    // TODO: move camera class to a separate module
-    let viewport_height = 2.0;
-    let viewport_width = aspect_ratio * viewport_height;
-    let focal_length = 1.0;
-    let origin = Point{x: 0.0, y: 0.0, z: 0.0};
-    let horizontal = Vec3{x: viewport_width, y: 0.0, z: 0.0};
-    let vertical = Vec3{x: 0.0, y: viewport_height, z: 0.0};
-    let center = Point{x: 0.0, y: 0.0, z: -focal_length};
-    let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 + center;
+    let cam = Camera::new(image_height, image_width, 1.0);
 
     // world
-    let sphere = Box::new(wobject::Sphere{
+    let sphere = Box::new(wobject::Sphere {
         center: Point{x: 0.0, y: 0.0, z: -1.0},
         radius: 0.5,
     });
 
-    let ground = Box::new(wobject::Sphere{
+    let ground = Box::new(wobject::Sphere {
         center: Point{x: 0.0, y: -100.5, z: -1.0},
         radius: 100.0,
     });
 
-    let mut world = World{
+    let mut world = World {
         wobjects: Vec::new(),
         closest_so_far: f32::MAX,
     };
@@ -59,12 +54,7 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
     // render
     for j in 0..image_height {
         for i in 0..image_width {
-            let u = (i as f32) / (image_width as f32);
-            let v = 1.0 - (j as f32) / (image_height as f32);
-            let ray = Ray{
-                origin,
-                direction: lower_left_corner + u*horizontal + v*vertical - origin,
-            };
+            let ray = cam.get_ray(i as f32, j as f32);
             world.closest_so_far = f32::MAX;
                 
             // TODO: don't calculate background color unless not hit
@@ -82,11 +72,8 @@ pub fn trace_rays(width: u32, height: u32) -> Vec<u8> {
                     world.closest_so_far = hit.t;
                 }
             }
-            flat_image.push(color.r);
-            flat_image.push(color.g);
-            flat_image.push(color.b);
-            flat_image.push(color.a);
+            image.write_color(i, j, color);
         }
     }
-    flat_image
+    image.image.as_ptr()
 }

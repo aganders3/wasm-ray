@@ -1,6 +1,7 @@
 use std::ops;
 
 
+// TODO: make this generic over f32 and f64
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Vec3 {
     pub x: f32,
