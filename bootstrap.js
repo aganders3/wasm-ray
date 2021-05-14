@@ -54,7 +54,11 @@
 /******/ 	var wasmImportObjects = {
 /******/ 		"../pkg/wasm_ray_bg.wasm": function() {
 /******/ 			return {
-/******/
+/******/ 				"./wasm_ray_bg.js": {
+/******/ 					"__wbindgen_throw": function(p0i32,p1i32) {
+/******/ 						return installedModules["../pkg/wasm_ray_bg.js"].exports["__wbindgen_throw"](p0i32,p1i32);
+/******/ 					}
+/******/ 				}
 /******/ 			};
 /******/ 		},
 /******/ 	};
@@ -155,7 +159,7 @@
 /******/ 				promises.push(installedWasmModuleData);
 /******/ 			else {
 /******/ 				var importObject = wasmImportObjects[wasmModuleId]();
-/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/wasm_ray_bg.wasm":"578144b144b677378d0d"}[wasmModuleId] + ".module.wasm");
+/******/ 				var req = fetch(__webpack_require__.p + "" + {"../pkg/wasm_ray_bg.wasm":"1ac03d14acedb843cc1a"}[wasmModuleId] + ".module.wasm");
 /******/ 				var promise;
 /******/ 				if(importObject instanceof Promise && typeof WebAssembly.compileStreaming === 'function') {
 /******/ 					promise = Promise.all([WebAssembly.compileStreaming(req), importObject]).then(function(items) {
