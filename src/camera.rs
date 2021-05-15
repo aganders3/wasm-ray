@@ -1,26 +1,24 @@
 use rand::prelude::*;
 
-use crate::ray::Ray;
+use crate::ray::{Color, Ray, blend};
 use crate::vec3::{Vec3, Point};
+use crate::wobject::World;
 
 pub struct Camera {
-    pub image_height: usize,
-    pub image_width: usize,
-    pub aspect_ratio: f32,
+    image_height: usize,
+    image_width: usize,
 
-    viewport_height: f32,
-    viewport_width: f32,
-
-    focal_length: f32,
     origin: Point,
     horizontal: Vec3,
     vertical: Vec3,
-    center: Point,
     lower_left_corner: Point,
+
+    anti_aliasing: u8,
 }
 
 impl Camera {
-    pub fn new(image_height: usize, image_width: usize, focal_length: f32) -> Camera{
+    pub fn new(image_height: usize, image_width: usize, anti_aliasing: u8) -> Camera{
+        let focal_length = 1.0;
         let aspect_ratio = (image_width as f32) / (image_height as f32);
         let origin = Point{x: 0.0, y: 0.0, z: 0.0};
         let viewport_height = 2.0;
@@ -33,19 +31,46 @@ impl Camera {
         Camera {
             image_height,
             image_width,
-            aspect_ratio,
-            viewport_height,
-            viewport_width,
-            focal_length,
             origin,
             horizontal,
             vertical,
-            center,
             lower_left_corner,
+            anti_aliasing,
         }
     }
 
-    pub fn u_v_from_i_j(&self, i: f32, j: f32) -> [f32; 2] {
+    pub fn get_color(&self, world: &World, i: usize, j: usize) -> Color {
+        let colors = self.get_aa_rays(i as f32, j as f32).iter().map(|ray| {
+            let mut color = ray.color();
+            let mut closest_so_far = f32::MAX;
+            for item in world.wobjects.iter() {
+                if let Some(hit) = item.hit(ray, 0.0, closest_so_far) {
+                    let normal = hit.normal;
+                    closest_so_far = hit.t;
+                    color = Color::from_normal(normal);
+                }
+            }
+            color
+        })
+        .collect();
+
+        blend(colors)
+        /*
+        let ray = &(self.get_aa_rays(i as f32, j as f32)[0]);
+        let mut color = ray.color();
+        let mut closest_so_far = f32::MAX;
+        for item in world.wobjects.iter() {
+            if let Some(hit) = item.hit(&ray, 0.0, closest_so_far) {
+                let normal = hit.normal;
+                closest_so_far = hit.t;
+                color = Color::from_normal(normal);
+            }
+        }
+        color
+        */
+    }
+
+    fn u_v_from_i_j(&self, i: f32, j: f32) -> [f32; 2] {
         [
             (i as f32) / (self.image_width as f32),
             1.0 - (j as f32) / (self.image_height as f32),
@@ -60,13 +85,19 @@ impl Camera {
         }
     }
 
-    pub fn get_aa_rays(&self, i: f32, j: f32, n: u8) -> Vec<Ray> {
-        let mut rays: Vec<Ray> = Vec::new();
-        let mut rng = rand::thread_rng();
-        for _ in 0..n {
-            let i_ = i + rng.gen::<f32>();
-            let j_ = j + rng.gen::<f32>();
-            rays.push(self.get_ray(i_, j_))
+    pub fn get_aa_rays(&self, i: f32, j: f32) -> Vec<Ray> {
+        let mut rays: Vec<Ray> = Vec::with_capacity(self.anti_aliasing as usize);
+
+        if self.anti_aliasing == 1 {
+            rays.push(self.get_ray(i, j))
+        } else {
+            let mut rng = rand::thread_rng();
+            for idx in 0..self.anti_aliasing {
+                rays.push(self.get_ray(
+                    i + rng.gen::<f32>(),
+                    j + rng.gen::<f32>(),
+                ))
+            }
         }
         rays
     }

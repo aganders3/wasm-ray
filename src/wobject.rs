@@ -13,7 +13,6 @@ pub trait Wobject {
 
 pub struct World {
     pub wobjects: Vec<Box<dyn Wobject>>,
-    pub closest_so_far: f32,
 }
 
 impl World {

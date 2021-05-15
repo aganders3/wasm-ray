@@ -1,18 +1,17 @@
 use wasm_bindgen::prelude::*;
 
 #[macro_use]
-mod utils;
-mod ray;
-use ray::{Color, Ray};
-
-mod vec3;
-use vec3::{Point, Vec3};
-mod wobject;
-use wobject::World;
 mod camera;
-use camera::Camera;
 mod image;
+mod ray;
+mod utils;
+mod vec3;
+mod wobject;
+
+use camera::Camera;
 use image::Image;
+use vec3::Point;
+use wobject::World;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -22,7 +21,7 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 
 #[wasm_bindgen]
-pub fn trace_rays(width: u32, height: u32) -> *const u8 {
+pub fn trace_rays(width: u32, height: u32, aa: u8) -> *const u8 {
     // image
     let image_width = width as usize;
     let image_height= height as usize;
@@ -30,7 +29,7 @@ pub fn trace_rays(width: u32, height: u32) -> *const u8 {
     let mut image = Image::new(image_height, image_width);
 
     // camera
-    let cam = Camera::new(image_height, image_width, 1.0);
+    let cam = Camera::new(image_height, image_width, aa);
 
     // world
     let sphere = Box::new(wobject::Sphere {
@@ -45,7 +44,6 @@ pub fn trace_rays(width: u32, height: u32) -> *const u8 {
 
     let mut world = World {
         wobjects: Vec::new(),
-        closest_so_far: f32::MAX,
     };
 
     world.insert(sphere);
@@ -54,26 +52,10 @@ pub fn trace_rays(width: u32, height: u32) -> *const u8 {
     // render
     for j in 0..image_height {
         for i in 0..image_width {
-            let ray = cam.get_ray(i as f32, j as f32);
-            world.closest_so_far = f32::MAX;
-                
-            // TODO: don't calculate background color unless not hit
-            // TODO: only calculate normal if closest hit
-            let mut color = ray.color();
-            for item in world.wobjects.iter() {
-                if let Some(hit) = item.hit(&ray, 0.0, world.closest_so_far) {
-                    let normal = hit.normal;
-                    color = Color{
-                        r: (128. + 128.*normal.x) as u8,
-                        g: (128. + 128.*normal.y) as u8,
-                        b: (128. + 128.*normal.z) as u8,
-                        a: 255,
-                    };
-                    world.closest_so_far = hit.t;
-                }
-            }
+            let color = cam.get_color(&world, i, j);
             image.write_color(i, j, color);
         }
     }
+
     image.image.as_ptr()
 }
