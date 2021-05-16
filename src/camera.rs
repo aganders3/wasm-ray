@@ -2,7 +2,7 @@ use rand::prelude::*;
 
 use crate::ray::{Color, Ray, blend};
 use crate::vec3::{Vec3, Point};
-use crate::wobject::World;
+use crate::wobject::{Wobject, World };
 
 pub struct Camera {
     image_height: usize,
@@ -39,11 +39,11 @@ impl Camera {
         }
     }
 
-    pub fn get_color(&self, world: &World, i: usize, j: usize) -> Color {
+    pub fn get_color(&self, world: &Vec<Box<Wobject + Send + Sync>>, i: usize, j: usize) -> Color {
         let colors = self.get_aa_rays(i as f32, j as f32).iter().map(|ray| {
             let mut color = ray.color();
             let mut closest_so_far = f32::MAX;
-            for item in world.wobjects.iter() {
+            for item in world.iter() {
                 if let Some(hit) = item.hit(ray, 0.0, closest_so_far) {
                     let normal = hit.normal;
                     closest_so_far = hit.t;
@@ -53,21 +53,9 @@ impl Camera {
             color
         })
         .collect();
+        // TODO: probably don't need to collect here
 
         blend(colors)
-        /*
-        let ray = &(self.get_aa_rays(i as f32, j as f32)[0]);
-        let mut color = ray.color();
-        let mut closest_so_far = f32::MAX;
-        for item in world.wobjects.iter() {
-            if let Some(hit) = item.hit(&ray, 0.0, closest_so_far) {
-                let normal = hit.normal;
-                closest_so_far = hit.t;
-                color = Color::from_normal(normal);
-            }
-        }
-        color
-        */
     }
 
     fn u_v_from_i_j(&self, i: f32, j: f32) -> [f32; 2] {
