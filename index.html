@@ -20,17 +20,18 @@
   <body>
     <noscript>This page contains webassembly and javascript content, please enable javascript in your browser.</noscript>
     <canvas id="rendered-image" width="400" height="225" style="border:1px solid #d3d3d3;"></canvas>
+    <label for="rendered-image" id="render-time"></label>
     <div>
-      <input type="range" min="32" max="2048" value="400" class="slider" id="image-width">
-      <label for="image-width">Width</label>
+      <label for="image-width"></label>
+      <input type="range" min="32" max="1024" value="400" class="slider" id="image-width">
     </div>
     <div>
-      <input type="range" min="32" max="2048" value="225" class="slider" id="image-height">
-      <label for="image-height">Height</label>
+      <label for="image-height"></label>
+      <input type="range" min="32" max="1024" value="225" class="slider" id="image-height">
     </div>
     <div>
-      <input type="range" min="1" max="255" value="1" class="slider" id="anti-aliasing">
-      <label for="anti-aliasing">Anti-Aliasing</label>
+      <label for="anti-aliasing"></label>
+      <input type="range" min="1" max="128" value="1" class="slider" id="anti-aliasing">
     </div>
     <script src="./bootstrap.js"></script>
   </body>
