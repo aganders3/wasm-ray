@@ -1,12 +1,17 @@
-init:
+wasm-init:
 	cd www && npm install
 
-build:
+wasm:
 	wasm-pack build
 
-run:
+wasm-run:
 	cd www && npm run start
 
-dist:
+wasm-dist:
 	wasm-pack build && cd www && ./node_modules/.bin/webpack
 
+debug:
+	cargo build
+
+bin:
+	cargo build --release

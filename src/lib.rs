@@ -1,8 +1,6 @@
 use wasm_bindgen::prelude::*;
 use rayon::prelude::*;
 
-use std::path::Path;
-
 #[macro_use]
 mod utils;
 
@@ -65,7 +63,7 @@ pub fn trace_rays(width: u32, height: u32, aa: u8) -> *const u8 {
     image.image.as_ptr()
 }
 
-pub fn trace_rays_to_image(width: u32, height: u32, aa: u8) {
+pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     // image
     let image_width = width as usize;
     let image_height= height as usize;
@@ -104,5 +102,5 @@ pub fn trace_rays_to_image(width: u32, height: u32, aa: u8) {
         }
     );
 
-    image::save_buffer(&Path::new("image.png"), &image.image, width, height, image::ColorType::Rgba8);
+    image
 }
