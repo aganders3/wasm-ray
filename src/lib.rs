@@ -13,7 +13,6 @@ mod wobject;
 use camera::Camera;
 use im::Image;
 use vec3::Point;
-use wobject::World;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -44,13 +43,7 @@ pub fn trace_rays(width: u32, height: u32, aa: u8) -> *const u8 {
         radius: 100.0,
     }) as Box<dyn wobject::Wobject + Send + Sync>;
 
-    // let mut world = World {
-    //     wobjects: Vec::new(),
-    // };
-    let mut world = Vec::new();
-
-    world.push(sphere);
-    world.push(ground);
+    let world = vec![sphere, ground];
 
     // render
     for j in 0..image_height {

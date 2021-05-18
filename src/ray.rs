@@ -19,6 +19,26 @@ impl Color {
     }
 }
 
+impl std::ops::Mul<Color> for f32 {
+    type Output = Color;
+
+    fn mul(self, _rhs: Color) -> Color {
+        let factor: f32;
+        if self > 0.0 && self < 1.0 {
+            factor = self;
+        } else {
+            factor = 1.0;
+        }
+
+        Color{
+            r: (factor * _rhs.r as f32) as u8,
+            g: (factor * _rhs.g as f32) as u8,
+            b: (factor * _rhs.b as f32) as u8,
+            a: (factor * _rhs.a as f32) as u8,
+        }
+    }
+}
+
 pub fn blend(colors: Vec<Color>) -> Color {
     let mut r: u32 = 0;
     let mut g: u32 = 0;

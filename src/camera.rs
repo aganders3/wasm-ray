@@ -1,8 +1,10 @@
 use rand::prelude::*;
 
+use std::collections::VecDeque;
+
 use crate::ray::{Color, Ray, blend};
 use crate::vec3::{Vec3, Point};
-use crate::wobject::{Wobject, World };
+use crate::wobject::Wobject;
 
 pub struct Camera {
     image_height: usize,
@@ -14,6 +16,7 @@ pub struct Camera {
     lower_left_corner: Point,
 
     anti_aliasing: u8,
+    max_bounces: u32,
 }
 
 impl Camera {
@@ -36,25 +39,34 @@ impl Camera {
             vertical,
             lower_left_corner,
             anti_aliasing,
+            max_bounces: 128,
         }
     }
 
     pub fn get_color(&self, world: &Vec<Box<Wobject + Send + Sync>>, i: usize, j: usize) -> Color {
-        let colors = self.get_aa_rays(i as f32, j as f32).iter().map(|ray| {
-            let mut color = ray.color();
-            let mut closest_so_far = f32::MAX;
-            for item in world.iter() {
-                if let Some(hit) = item.hit(ray, 0.0, closest_so_far) {
-                    let normal = hit.normal;
-                    closest_so_far = hit.t;
-                    color = Color::from_normal(normal);
-                }
-            }
-            color
-        })
-        .collect();
-        // TODO: probably don't need to collect here
+        let mut rays = self.get_aa_rays(i as f32, j as f32);
+        let mut colors = Vec::with_capacity(self.anti_aliasing as usize);
 
+        while !rays.is_empty() {
+            if let Some(ray) = rays.pop_front() {
+                let mut color = ray.color();
+                let mut closest_so_far = f32::MAX;
+                for item in world.iter() {
+                    if let Some(hit) = item.hit(&ray, 0.0, closest_so_far) {
+                        closest_so_far = hit.t;
+                        color = match hit.color {
+                            Some(c) => hit.attenuation * c,
+                            None => Color{r: 0, g: 0, b: 0, a: 255}, 
+                        };
+                        // if let Some(new_ray) = scatter(item.material, hit)
+                        if let Some(new_ray) = hit.scatter {
+                            rays.push_back(new_ray);
+                        }
+                    }
+                }
+                colors.push(color);
+            }
+        }
         blend(colors)
     }
 
@@ -73,15 +85,15 @@ impl Camera {
         }
     }
 
-    pub fn get_aa_rays(&self, i: f32, j: f32) -> Vec<Ray> {
-        let mut rays: Vec<Ray> = Vec::with_capacity(self.anti_aliasing as usize);
+    pub fn get_aa_rays(&self, i: f32, j: f32) -> VecDeque<Ray> {
+        let mut rays: VecDeque<Ray> = VecDeque::new();
 
         if self.anti_aliasing == 1 {
-            rays.push(self.get_ray(i, j))
+            rays.push_back(self.get_ray(i, j))
         } else {
             let mut rng = rand::thread_rng();
             for idx in 0..self.anti_aliasing {
-                rays.push(self.get_ray(
+                rays.push_back(self.get_ray(
                     i + rng.gen::<f32>(),
                     j + rng.gen::<f32>(),
                 ))

@@ -1,24 +1,17 @@
-use crate::ray::Ray;
+use crate::ray::{Ray, Color};
 use crate::vec3::{Vec3, Point};
 
 pub struct Hit {
     pub p: Point,
     pub normal: Vec3,
     pub t: f32,
+    pub attenuation: f32,
+    pub scatter: Option<Ray>,
+    pub color: Option<Color>,
 }
 
 pub trait Wobject {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
-}
-
-pub struct World {
-    pub wobjects: Vec<Box<dyn Wobject>>,
-}
-
-impl World {
-    pub fn insert(&mut self, wobject: Box<dyn Wobject>) {
-        self.wobjects.push(wobject);
-    }
 }
 
 pub struct Sphere {
@@ -37,10 +30,21 @@ impl Wobject for Sphere {
         if discriminant >= 0.0 {
             let t = (-b - discriminant.sqrt()) / (2.0 * a);
             if t > t_min && t < t_max {
+                let p = ray.at(t);
+                let normal = (p - self.center).unit();
                 return Some(Hit{
-                    p: ray.at(t),
-                    normal: (ray.at(t) - self.center).unit(),
+                    p,
+                    normal,
                     t,
+                    attenuation: 0.2,
+                    scatter: Some(Ray{
+                        origin: p,
+                        // metal
+                        direction: ray.direction - 2.0 * ray.direction.dot(&normal) * normal,
+                    }),
+                    color: None,
+                    // color: Some(Color::from_normal(normal)),
+                    // color: Some(Color{r: 32, g: 32, b: 128, a: 255}),
                 })
             }
         }
