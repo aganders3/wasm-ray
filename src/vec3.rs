@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 use std::ops;
 
 
@@ -12,6 +14,23 @@ pub type Point = Vec3;
 
 
 impl Vec3 {
+    pub fn random() -> Self {
+        let mut rng = rand::thread_rng();
+        Vec3{
+            x: rng.gen::<f32>(),
+            y: rng.gen::<f32>(),
+            z: rng.gen::<f32>(),
+        }
+    }
+
+    pub fn random_unit() -> Self {
+        loop {
+            let v = 2.0 * Vec3::random() - 1.0;
+            if v.length_squared() >= 1.0 { continue; }
+            return v;
+        }
+    }
+
     pub fn dot(&self, other: &Self) -> f32 {
         self.x * other.x + self.y * other.y + self.z * other.z
     }

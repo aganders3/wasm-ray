@@ -1,3 +1,4 @@
+use crate::material::Material;
 use crate::ray::{Ray, Color};
 use crate::vec3::{Vec3, Point};
 
@@ -5,7 +6,6 @@ pub struct Hit {
     pub p: Point,
     pub normal: Vec3,
     pub t: f32,
-    pub attenuation: f32,
     pub scatter: Option<Ray>,
     pub color: Option<Color>,
 }
@@ -17,6 +17,7 @@ pub trait Wobject {
 pub struct Sphere {
     pub center: Point,
     pub radius: f32,
+    pub material: Material,
 }
 
 impl Wobject for Sphere {
@@ -32,19 +33,21 @@ impl Wobject for Sphere {
             if t > t_min && t < t_max {
                 let p = ray.at(t);
                 let normal = (p - self.center).unit();
+
+                let (direction, color) = self.material.scatter(ray.direction, normal);
+                let depth = ray.depth + 1;
+
+                let scatter = match direction {
+                    Some(d) => Some(Ray{origin: p, direction: d, depth}),
+                    None => None,
+                };
+
                 return Some(Hit{
                     p,
                     normal,
                     t,
-                    attenuation: 0.2,
-                    scatter: Some(Ray{
-                        origin: p,
-                        // metal
-                        direction: ray.direction - 2.0 * ray.direction.dot(&normal) * normal,
-                    }),
-                    color: None,
-                    // color: Some(Color::from_normal(normal)),
-                    // color: Some(Color{r: 32, g: 32, b: 128, a: 255}),
+                    scatter,
+                    color: Some(color),
                 })
             }
         }

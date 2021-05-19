@@ -6,12 +6,15 @@ mod utils;
 
 mod camera;
 mod im;
+mod material;
 mod ray;
 mod vec3;
 mod wobject;
 
 use camera::Camera;
 use im::Image;
+use material::Material;
+use ray::Color;
 use vec3::Point;
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
@@ -22,7 +25,11 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 
 #[wasm_bindgen]
-pub fn trace_rays(width: u32, height: u32, aa: u8) -> *const u8 {
+pub fn trace_rays_wasm(width: u32, height: u32, aa: u8) -> *const u8 {
+    trace_rays(width, height, aa).image.as_ptr()
+}
+
+pub fn trace_rays(width: u32, height: u32, aa: u8) -> Image {
     // image
     let image_width = width as usize;
     let image_height= height as usize;
@@ -33,17 +40,7 @@ pub fn trace_rays(width: u32, height: u32, aa: u8) -> *const u8 {
     let cam = Camera::new(image_height, image_width, aa);
 
     // world
-    let sphere = Box::new(wobject::Sphere {
-        center: Point{x: 0.0, y: 0.0, z: -1.0},
-        radius: 0.5,
-    }) as Box<dyn wobject::Wobject + Send + Sync>;
-
-    let ground = Box::new(wobject::Sphere {
-        center: Point{x: 0.0, y: -100.5, z: -1.0},
-        radius: 100.0,
-    }) as Box<dyn wobject::Wobject + Send + Sync>;
-
-    let world = vec![sphere, ground];
+    let world = scene();
 
     // render
     for j in 0..image_height {
@@ -53,7 +50,7 @@ pub fn trace_rays(width: u32, height: u32, aa: u8) -> *const u8 {
         }
     }
 
-    image.image.as_ptr()
+    image
 }
 
 pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
@@ -67,20 +64,7 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     let cam = Camera::new(image_height, image_width, aa);
 
     // world
-    let sphere = Box::new(wobject::Sphere {
-        center: Point{x: 0.0, y: 0.0, z: -1.0},
-        radius: 0.5,
-    }) as Box<dyn wobject::Wobject + Send + Sync>;
-
-    let ground = Box::new(wobject::Sphere {
-        center: Point{x: 0.0, y: -100.5, z: -1.0},
-        radius: 100.0,
-    }) as Box<dyn wobject::Wobject + Send + Sync>;
-
-    let mut world = Vec::new();
-
-    world.push(sphere);
-    world.push(ground);
+    let world = scene();
 
     // render
     image.image.par_chunks_mut(4 * image_width).enumerate().for_each(
@@ -96,4 +80,34 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     );
 
     image
+}
+
+fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![
+        Box::new(wobject::Sphere {
+            center: Point{x: -0.5, y: 0.0, z: -1.0},
+            radius: 0.25,
+            material: Material::Lambertian {
+                color: Color{r: 128, g: 128, b: 128, a: 255},
+                albedo: 0.5,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.5, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 128, g: 128, b: 128, a: 255},
+                albedo: 0.5,
+                fuzz: 0.01,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -100.5, z: -1.0},
+            radius: 100.0,
+            material: Material::Lambertian {
+                color: Color{r: 128, g: 128, b: 128, a: 255},
+                albedo: 0.5,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+    ]
 }

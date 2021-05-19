@@ -9,7 +9,7 @@ pub struct Color{
 }
 
 impl Color {
-    pub fn from_normal(normal: Vec3) -> Color{
+    pub fn from_normal(normal: &Vec3) -> Color{
         Color {
             r: (128. + 128.*normal.x) as u8,
             g: (128. + 128.*normal.y) as u8,
@@ -34,7 +34,7 @@ impl std::ops::Mul<Color> for f32 {
             r: (factor * _rhs.r as f32) as u8,
             g: (factor * _rhs.g as f32) as u8,
             b: (factor * _rhs.b as f32) as u8,
-            a: (factor * _rhs.a as f32) as u8,
+            a: _rhs.a,
         }
     }
 }
@@ -63,6 +63,7 @@ pub fn blend(colors: Vec<Color>) -> Color {
 pub struct Ray {
     pub origin: Point,
     pub direction: Vec3,
+    pub depth: u8,
 }
 
 impl Ray {

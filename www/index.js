@@ -1,5 +1,5 @@
 import { memory } from "wasm-ray/wasm_ray_bg";
-import { trace_rays } from "wasm-ray";
+import { trace_rays_wasm } from "wasm-ray";
 
 const canvas = document.getElementById("rendered-image"); // as HTMLCanvasElement;
 const render_time_label = document.getElementById("render-time");
@@ -20,7 +20,7 @@ function drawImage() {
     canvas.width = imWidth;
 
     const t0 = performance.now();
-    const im_ptr = trace_rays(imWidth, imHeight, aa);
+    const im_ptr = trace_rays_wasm(imWidth, imHeight, aa);
     let im = new ImageData(new Uint8ClampedArray(memory.buffer, im_ptr, 4 * imWidth * imHeight), imWidth, imHeight);
     const t1 = performance.now();
 

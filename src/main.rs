@@ -1,4 +1,3 @@
-use std::env;
 use std::path::Path;
 
 use clap::{Arg, App};

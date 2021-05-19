@@ -43,7 +43,7 @@ impl Camera {
         }
     }
 
-    pub fn get_color(&self, world: &Vec<Box<Wobject + Send + Sync>>, i: usize, j: usize) -> Color {
+    pub fn get_color(&self, world: &[Box<dyn Wobject + Send + Sync>], i: usize, j: usize) -> Color {
         let mut rays = self.get_aa_rays(i as f32, j as f32);
         let mut colors = Vec::with_capacity(self.anti_aliasing as usize);
 
@@ -51,18 +51,19 @@ impl Camera {
             if let Some(ray) = rays.pop_front() {
                 let mut color = ray.color();
                 let mut closest_so_far = f32::MAX;
+                let mut scatter: Option<Ray> = None;
                 for item in world.iter() {
-                    if let Some(hit) = item.hit(&ray, 0.0, closest_so_far) {
+                    if let Some(hit) = item.hit(&ray, 0.001, closest_so_far) {
                         closest_so_far = hit.t;
                         color = match hit.color {
-                            Some(c) => hit.attenuation * c,
+                            Some(c) => 0.5_f32.powf(ray.depth as f32) * c,
                             None => Color{r: 0, g: 0, b: 0, a: 255}, 
                         };
-                        // if let Some(new_ray) = scatter(item.material, hit)
-                        if let Some(new_ray) = hit.scatter {
-                            rays.push_back(new_ray);
-                        }
+                        scatter = hit.scatter;
                     }
+                }
+                if let Some(new_ray) = scatter {
+                    rays.push_back(new_ray);
                 }
                 colors.push(color);
             }
@@ -82,6 +83,7 @@ impl Camera {
         Ray{
             origin: self.origin,
             direction: self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
+            depth: 0,
         }
     }
 
@@ -92,7 +94,7 @@ impl Camera {
             rays.push_back(self.get_ray(i, j))
         } else {
             let mut rng = rand::thread_rng();
-            for idx in 0..self.anti_aliasing {
+            for _ in 0..self.anti_aliasing {
                 rays.push_back(self.get_ray(
                     i + rng.gen::<f32>(),
                     j + rng.gen::<f32>(),
