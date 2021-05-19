@@ -85,28 +85,35 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
 fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         Box::new(wobject::Sphere {
-            center: Point{x: -0.5, y: 0.0, z: -1.0},
+            center: Point{x: -0.25, y: -0.3, z: -0.75},
+            radius: 0.1,
+            material: Material::Metal {
+                color: Color{r: 128, g: 32, b: 128, a: 255},
+                fuzz: 0.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+        Box::new(wobject::Sphere {
+            center: Point{x: -0.5, y: 0.3, z: -1.0},
             radius: 0.25,
-            material: Material::Lambertian {
-                color: Color{r: 128, g: 128, b: 128, a: 255},
-                albedo: 0.5,
+            material: Material::Metal {
+                color: Color{r: 32, g: 128, b: 128, a: 255},
+                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
         Box::new(wobject::Sphere {
             center: Point{x: 0.5, y: 0.0, z: -1.0},
             radius: 0.5,
             material: Material::Metal {
-                color: Color{r: 128, g: 128, b: 128, a: 255},
-                albedo: 0.5,
-                fuzz: 0.01,
+                color: Color{r: 16, g: 128, b: 16, a: 255},
+                fuzz: 0.1,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
         Box::new(wobject::Sphere {
             center: Point{x: 0.0, y: -100.5, z: -1.0},
             radius: 100.0,
             material: Material::Lambertian {
-                color: Color{r: 128, g: 128, b: 128, a: 255},
-                albedo: 0.5,
+                color: Color{r: 32, g: 32, b: 255, a: 255},
+                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
     ]

@@ -7,7 +7,7 @@ pub struct Hit {
     pub normal: Vec3,
     pub t: f32,
     pub scatter: Option<Ray>,
-    pub color: Option<Color>,
+    pub color: Color,
 }
 
 pub trait Wobject {
@@ -34,21 +34,17 @@ impl Wobject for Sphere {
                 let p = ray.at(t);
                 let normal = (p - self.center).unit();
 
-                let (direction, color) = self.material.scatter(ray.direction, normal);
+                let direction = self.material.scatter(ray.direction, normal);
                 let depth = ray.depth + 1;
 
+                let color = self.material.color(ray.direction, normal);
+
                 let scatter = match direction {
-                    Some(d) => Some(Ray{origin: p, direction: d, depth}),
+                    Some(d) => Some(Ray{origin: p, direction: d, depth, color}),
                     None => None,
                 };
 
-                return Some(Hit{
-                    p,
-                    normal,
-                    t,
-                    scatter,
-                    color: Some(color),
-                })
+                return Some(Hit{p, normal, t, scatter, color: ray.color * color})
             }
         }
         None

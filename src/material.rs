@@ -5,23 +5,33 @@ use crate::vec3::{Vec3, Point};
 pub enum Material {
     NormalView,
     VantaBlack,
-    Metal{color: Color, albedo: f32, fuzz: f32},
-    Lambertian{color: Color, albedo: f32},
+    Metal{color: Color, fuzz: f32},
+    Lambertian{color: Color, fuzz: f32},
 }
 
 impl Material {
-    pub fn scatter(&self, incoming: Vec3, normal: Vec3) -> (Option<Vec3>, Color) {
+    pub fn scatter(&self, incoming: Vec3, normal: Vec3) -> Option<Vec3> {
         match self {
-            Self::NormalView => (None, Color::from_normal(&normal)),
-            Self::VantaBlack => (None, Color{r: 0, g: 0, b: 0, a: 255}),
-            Self::Metal{color, albedo, fuzz} => {
+            Self::NormalView => None,
+            Self::VantaBlack => None,
+            Self::Metal{color: _, fuzz} => {
                 let direction = incoming - 2.0 * incoming.dot(&normal) * normal;
                 let d = Self::reflect(direction, *fuzz);
-                (Some(d), *color)
+                Some(d)
             },
-            Self::Lambertian{color, albedo} => {
-                let d = Self::reflect(normal, 1.0);
-                (Some(d), *color)
+            Self::Lambertian{color: _, fuzz} => {
+                let d = Self::reflect(normal, *fuzz);
+                Some(d)
+            },
+        }
+    }
+
+    pub fn color(&self, incoming: Vec3, normal: Vec3) -> Color {
+        match self {
+            Self::NormalView => Color::from_normal(&normal),
+            Self::VantaBlack => Color{r: 0, g: 0, b: 0, a: 255},
+            Self::Metal{color, fuzz: _} | Self::Lambertian{color, fuzz: _} => {
+                *color
             },
         }
     }

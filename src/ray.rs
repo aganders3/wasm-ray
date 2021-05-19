@@ -39,6 +39,19 @@ impl std::ops::Mul<Color> for f32 {
     }
 }
 
+impl std::ops::Mul<Color> for Color {
+    type Output = Color;
+
+    fn mul(self, _rhs: Color) -> Color {
+        Color{
+            r: (255.0 * (self.r as f32 / 255.0) * (_rhs.r as f32 / 255.0)) as u8,
+            g: (255.0 * (self.g as f32 / 255.0) * (_rhs.g as f32 / 255.0)) as u8,
+            b: (255.0 * (self.b as f32 / 255.0) * (_rhs.b as f32 / 255.0)) as u8,
+            a: _rhs.a,
+        }
+    }
+}
+
 pub fn blend(colors: Vec<Color>) -> Color {
     let mut r: u32 = 0;
     let mut g: u32 = 0;
@@ -64,6 +77,7 @@ pub struct Ray {
     pub origin: Point,
     pub direction: Vec3,
     pub depth: u8,
+    pub color: Color,
 }
 
 impl Ray {
@@ -71,7 +85,7 @@ impl Ray {
         self.origin + t * self.direction
     }
 
-    pub fn color(&self) -> Color {
+    pub fn background_color(&self) -> Color {
         let t = 0.5 * (self.direction.unit().y + 1.0);
         Color{
             r: ((1.0 - t) * 255. + t * 128.) as u8,

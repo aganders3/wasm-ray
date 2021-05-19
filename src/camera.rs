@@ -49,16 +49,13 @@ impl Camera {
 
         while !rays.is_empty() {
             if let Some(ray) = rays.pop_front() {
-                let mut color = ray.color();
+                let mut color = ray.background_color();
                 let mut closest_so_far = f32::MAX;
                 let mut scatter: Option<Ray> = None;
                 for item in world.iter() {
                     if let Some(hit) = item.hit(&ray, 0.001, closest_so_far) {
                         closest_so_far = hit.t;
-                        color = match hit.color {
-                            Some(c) => 0.5_f32.powf(ray.depth as f32) * c,
-                            None => Color{r: 0, g: 0, b: 0, a: 255}, 
-                        };
+                        color = hit.color;
                         scatter = hit.scatter;
                     }
                 }
@@ -80,10 +77,11 @@ impl Camera {
 
     pub fn get_ray(&self, i: f32, j: f32) -> Ray {
         let [u, v] = self.u_v_from_i_j(i, j);
-        Ray{
+        Ray {
             origin: self.origin,
             direction: self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
             depth: 0,
+            color: Color{r: 255, g: 255, b: 255, a: 255},
         }
     }
 
