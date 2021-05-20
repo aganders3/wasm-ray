@@ -34,7 +34,7 @@ fn main() {
 
     let im = trace_rays_parallel(width, height, aa);
 
-    let result = image::save_buffer(&Path::new(fname), &im.image, width, height, image::ColorType::Rgba8);
+    let result = image::save_buffer(&Path::new(fname), &im.image, width, height, image::ColorType::Rgb8);
 
     match result {
         Ok(_) => {

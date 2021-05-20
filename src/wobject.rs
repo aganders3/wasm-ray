@@ -6,6 +6,7 @@ pub struct Hit {
     pub p: Point,
     pub normal: Vec3,
     pub t: f32,
+    pub front_face: bool,
     pub scatter: Option<Ray>,
     pub color: Color,
 }
@@ -32,11 +33,13 @@ impl Wobject for Sphere {
             let t = (-b - discriminant.sqrt()) / (2.0 * a);
             if t > t_min && t < t_max {
                 let p = ray.at(t);
-                let normal = (p - self.center).unit();
+                let outward_normal = (p - self.center).unit();
+                let front_face = ray.direction.dot(&outward_normal) < 0.0;
+                let normal = if front_face { outward_normal } else { -outward_normal };
 
-                let direction = self.material.scatter(ray.direction, normal);
+                // scattered ray
+                let direction = self.material.scatter(ray.direction, normal, front_face);
                 let depth = ray.depth + 1;
-
                 let color = self.material.color(ray.direction, normal);
 
                 let scatter = match direction {
@@ -44,7 +47,7 @@ impl Wobject for Sphere {
                     None => None,
                 };
 
-                return Some(Hit{p, normal, t, scatter, color: ray.color * color})
+                return Some(Hit{p, normal, t, front_face, scatter, color: ray.color * color})
             }
         }
         None

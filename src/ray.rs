@@ -2,19 +2,17 @@ use crate::vec3::{Vec3, Point};
 
 #[derive(Clone, Copy, Debug)]
 pub struct Color{
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-    pub a: u8
+    pub r: f32,
+    pub g: f32,
+    pub b: f32,
 }
 
 impl Color {
     pub fn from_normal(normal: &Vec3) -> Color{
         Color {
-            r: (128. + 128.*normal.x) as u8,
-            g: (128. + 128.*normal.y) as u8,
-            b: (128. + 128.*normal.z) as u8,
-            a: 255,
+            r: 0.5 + 0.5 * normal.x,
+            g: 0.5 + 0.5 * normal.y,
+            b: 0.5 + 0.5 * normal.z,
         }
     }
 }
@@ -31,10 +29,9 @@ impl std::ops::Mul<Color> for f32 {
         }
 
         Color{
-            r: (factor * _rhs.r as f32) as u8,
-            g: (factor * _rhs.g as f32) as u8,
-            b: (factor * _rhs.b as f32) as u8,
-            a: _rhs.a,
+            r: factor * _rhs.r,
+            g: factor * _rhs.g,
+            b: factor * _rhs.b,
         }
     }
 }
@@ -44,32 +41,28 @@ impl std::ops::Mul<Color> for Color {
 
     fn mul(self, _rhs: Color) -> Color {
         Color{
-            r: (255.0 * (self.r as f32 / 255.0) * (_rhs.r as f32 / 255.0)) as u8,
-            g: (255.0 * (self.g as f32 / 255.0) * (_rhs.g as f32 / 255.0)) as u8,
-            b: (255.0 * (self.b as f32 / 255.0) * (_rhs.b as f32 / 255.0)) as u8,
-            a: _rhs.a,
+            r: self.r * _rhs.r,
+            g: self.g * _rhs.g,
+            b: self.b * _rhs.b,
         }
     }
 }
 
 pub fn blend(colors: Vec<Color>) -> Color {
-    let mut r: u32 = 0;
-    let mut g: u32 = 0;
-    let mut b: u32 = 0;
-    let mut a: u32 = 0;
-    let len = colors.len() as u32;
+    let mut r = 0.0;
+    let mut g = 0.0;
+    let mut b = 0.0;
+    let len = colors.len() as f32;
     for color in colors.iter() {
-        r += color.r as u32;
-        g += color.g as u32;
-        b += color.b as u32;
-        a += color.a as u32;
+        r += color.r;
+        g += color.g;
+        b += color.b;
     }
 
     Color{
-        r: (r / len) as u8,
-        g: (g / len) as u8,
-        b: (b / len) as u8,
-        a: (a / len) as u8,
+        r: r / len,
+        g: g / len,
+        b: b / len,
     }
 }
 
@@ -88,10 +81,9 @@ impl Ray {
     pub fn background_color(&self) -> Color {
         let t = 0.5 * (self.direction.unit().y + 1.0);
         Color{
-            r: ((1.0 - t) * 255. + t * 128.) as u8,
-            g: ((1.0 - t) * 255. + t * 178.) as u8,
-            b: 255,
-            a: 255,
+            r: (1.0 - t) * 1.0 + t * 0.5,
+            g: (1.0 - t) * 1.0 + t * 0.7,
+            b: 1.0,
         }
     }
 }

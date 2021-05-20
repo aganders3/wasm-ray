@@ -16,7 +16,7 @@ pub struct Camera {
     lower_left_corner: Point,
 
     anti_aliasing: u8,
-    max_bounces: u32,
+    max_bounces: u8,
 }
 
 impl Camera {
@@ -49,6 +49,7 @@ impl Camera {
 
         while !rays.is_empty() {
             if let Some(ray) = rays.pop_front() {
+                if ray.depth > self.max_bounces { continue; }
                 let mut color = ray.background_color();
                 let mut closest_so_far = f32::MAX;
                 let mut scatter: Option<Ray> = None;
@@ -81,7 +82,7 @@ impl Camera {
             origin: self.origin,
             direction: self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
             depth: 0,
-            color: Color{r: 255, g: 255, b: 255, a: 255},
+            color: Color{r: 1.0, g: 1.0, b: 1.0},
         }
     }
 

@@ -21,7 +21,7 @@ function drawImage() {
 
     const t0 = performance.now();
     const im_ptr = trace_rays_wasm(imWidth, imHeight, aa);
-    let im = new ImageData(new Uint8ClampedArray(memory.buffer, im_ptr, 4 * imWidth * imHeight), imWidth, imHeight);
+    let im = new ImageData(new Uint8ClampedArray(memory.buffer, im_ptr, 3 * imWidth * imHeight), imWidth, imHeight);
     const t1 = performance.now();
 
     const renderTime = Math.round(t1 - t0);
