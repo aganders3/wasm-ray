@@ -39,7 +39,7 @@ impl Camera {
             vertical,
             lower_left_corner,
             anti_aliasing,
-            max_bounces: 255,
+            max_bounces: 32,
         }
     }
 

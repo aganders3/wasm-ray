@@ -21,7 +21,9 @@ impl Material {
                 let d = Self::reflect(direction, *fuzz);
                 // TODO: weird "glowing rim" effect if this is included
                 // if !d.near_zero() && d.dot(&normal) > 0.0 { Some(d) } else { None }
-                if !d.near_zero() { Some(d) } else { Some(normal) }
+                // TODO: does not seem helpful
+                // if !d.near_zero() { Some(d) } else { Some(incoming) }
+                Some(d)
             },
             Self::Lambertian{color: _, fuzz} => {
                 let d = Self::reflect(normal, *fuzz);
@@ -30,7 +32,7 @@ impl Material {
             },
             Self::Dielectric{color: _, eta} => {
                 let d = Self::reflect_or_refract(incoming, normal, front_face, *eta);
-                if ! d.near_zero() { Some(d) } else { None }
+                if !d.near_zero() { Some(d) } else { None }
             },
         }
     }
@@ -47,7 +49,7 @@ impl Material {
 
     fn reflect(direction: Vec3, spread: f32) -> Vec3 {
         if spread > 0.0 {
-            let scatter_direction = Vec3::random_unit();
+            let scatter_direction = Vec3::random_unit().unit();
             direction + spread * scatter_direction
         } else {
             direction
@@ -57,8 +59,7 @@ impl Material {
     fn refract(incoming_unit: Vec3, normal: Vec3, cos_theta: f32, refraction_ratio: f32) -> Vec3 {
         let perp = refraction_ratio * (incoming_unit + cos_theta * normal);
         let parallel = -(1.0 - perp.length_squared()).abs().sqrt() * normal;
-        // TODO: this factor of 2 is a fudge
-        perp + 2.0 * parallel
+        perp + parallel
     }
 
     fn reflect_or_refract(incoming: Vec3, normal: Vec3, front_face: bool, eta: f32) -> Vec3 {
@@ -66,7 +67,6 @@ impl Material {
         //   air-to-dielectric (front face)
         //   or dielectric-to-air (inside face)
         let refraction_ratio = if front_face { 1.0 / eta } else { eta };
-
         let incoming_unit = incoming.unit();
         let cos_theta = (-incoming_unit).dot(&normal).min(1.0);
 

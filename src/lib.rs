@@ -65,12 +65,14 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     let cam = Camera::new(image_height, image_width, aa);
 
     // world
+    // println!("Generating the world...");
     // let world = scene_14();
     let world = cover_scene();
 
     // render
     image.image.par_chunks_mut(3 * image_width).enumerate().for_each(
         |(j, row)| {
+            // println!("Tracing row {}...", j);
             for i in 0..image_width {
                 let color = cam.get_color(&world, i, j);
                 row[3*i + 0] = (color.r.sqrt() * 256.) as u8;
@@ -279,7 +281,7 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
         Box::new(wobject::Sphere {
-            center: Point{x: -0.4, y: 0.0, z: -3.0},
+            center: Point{x: -1.0, y: 0.0, z: -3.0},
             radius: 0.5,
             material: Material::Lambertian {
                 color: Color{r: 0.4, g: 0.2, b: 0.1},
@@ -297,7 +299,7 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
         Box::new(wobject::Sphere {
-            center: Point{x: 0.4, y: 0.0, z: -1.0},
+            center: Point{x: 0.5, y: 0.0, z: -1.0},
             radius: 0.5,
             material: Material::Metal {
                 color: Color{r: 0.7, g: 0.6, b: 0.5},
