@@ -16,8 +16,8 @@ impl Image {
     }
 
     pub fn write_color(&mut self, i: usize, j: usize, color: Color) {
-        self.image[3 * self.image_width * j + 3 * i + 0] = (color.r * 255.) as u8;
-        self.image[3 * self.image_width * j + 3 * i + 1] = (color.g * 255.) as u8;
-        self.image[3 * self.image_width * j + 3 * i + 2] = (color.b * 255.) as u8;
+        self.image[3 * self.image_width * j + 3 * i + 0] = (color.r.sqrt() * 255.) as u8;
+        self.image[3 * self.image_width * j + 3 * i + 1] = (color.g.sqrt() * 255.) as u8;
+        self.image[3 * self.image_width * j + 3 * i + 2] = (color.b.sqrt() * 255.) as u8;
     }
 }

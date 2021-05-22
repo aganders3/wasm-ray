@@ -39,7 +39,7 @@ impl Camera {
             vertical,
             lower_left_corner,
             anti_aliasing,
-            max_bounces: 128,
+            max_bounces: 255,
         }
     }
 
@@ -49,9 +49,13 @@ impl Camera {
 
         while !rays.is_empty() {
             if let Some(ray) = rays.pop_front() {
-                if ray.depth > self.max_bounces { continue; }
+                if ray.depth > self.max_bounces {
+                    colors.push(Color{r: 0.0, g: 0.0, b: 0.0});
+                    continue;
+                }
+
                 let mut color = ray.background_color();
-                let mut closest_so_far = f32::MAX;
+                let mut closest_so_far = f32::INFINITY;
                 let mut scatter: Option<Ray> = None;
                 for item in world.iter() {
                     if let Some(hit) = item.hit(&ray, 0.001, closest_so_far) {
@@ -60,10 +64,14 @@ impl Camera {
                         scatter = hit.scatter;
                     }
                 }
+
                 if let Some(new_ray) = scatter {
+                    // hit and scattered
                     rays.push_back(new_ray);
+                } else {
+                    // absorbed or hit background
+                    colors.push(ray.color * color);
                 }
-                colors.push(color);
             }
         }
         blend(colors)

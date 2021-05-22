@@ -24,13 +24,13 @@ pub struct Sphere {
 impl Wobject for Sphere {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         let oc = ray.origin - self.center;
-        let a = ray.direction.dot(&ray.direction);
-        let b = 2.0 * oc.dot(&ray.direction);
-        let c = oc.dot(&oc) - self.radius * self.radius;
-        let discriminant = b * b - 4.0 * a * c;
+        let a = ray.direction.length_squared();
+        let half_b = oc.dot(&ray.direction);
+        let c = oc.length_squared() - self.radius * self.radius;
+        let discriminant = half_b * half_b - a * c;
 
         if discriminant >= 0.0 {
-            let t = (-b - discriminant.sqrt()) / (2.0 * a);
+            let t = (-half_b - discriminant.sqrt()) / a;
             if t > t_min && t < t_max {
                 let p = ray.at(t);
                 let outward_normal = (p - self.center).unit();
@@ -39,15 +39,15 @@ impl Wobject for Sphere {
 
                 // scattered ray
                 let direction = self.material.scatter(ray.direction, normal, front_face);
+                let color = self.material.color(normal);
                 let depth = ray.depth + 1;
-                let color = self.material.color(ray.direction, normal);
 
                 let scatter = match direction {
-                    Some(d) => Some(Ray{origin: p, direction: d, depth, color}),
+                    Some(d) => Some(Ray{origin: p, direction: d, depth, color: ray.color * color}),
                     None => None,
                 };
 
-                return Some(Hit{p, normal, t, front_face, scatter, color: ray.color * color})
+                return Some(Hit{p, normal, t, front_face, scatter, color})
             }
         }
         None

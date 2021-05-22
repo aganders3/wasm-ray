@@ -1,5 +1,6 @@
-use wasm_bindgen::prelude::*;
+use rand::prelude::*;
 use rayon::prelude::*;
+use wasm_bindgen::prelude::*;
 
 #[macro_use]
 mod utils;
@@ -64,16 +65,17 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     let cam = Camera::new(image_height, image_width, aa);
 
     // world
-    let world = scene();
+    // let world = scene_14();
+    let world = cover_scene();
 
     // render
     image.image.par_chunks_mut(3 * image_width).enumerate().for_each(
         |(j, row)| {
             for i in 0..image_width {
                 let color = cam.get_color(&world, i, j);
-                row[3*i + 0] = (color.r * 255.) as u8;
-                row[3*i + 1] = (color.g * 255.) as u8;
-                row[3*i + 2] = (color.b * 255.) as u8;
+                row[3*i + 0] = (color.r.sqrt() * 256.) as u8;
+                row[3*i + 1] = (color.g.sqrt() * 256.) as u8;
+                row[3*i + 2] = (color.b.sqrt() * 256.) as u8;
             }
         }
     );
@@ -81,39 +83,274 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     image
 }
 
-fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+fn empty() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![]
+}
+
+fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
-        Box::new(wobject::Sphere {
-            center: Point{x: -0.25, y: -0.3, z: -0.75},
-            radius: 0.1,
-            material: Material::Metal {
-                color: Color{r: 0.5, g: 0.1, b: 0.5},
-                fuzz: 0.0,
-            },
-        }) as Box<dyn wobject::Wobject + Send + Sync>,
-        Box::new(wobject::Sphere {
-            center: Point{x: -0.5, y: 0.3, z: -1.0},
-            radius: 0.25,
-            material: Material::Metal {
-                color: Color{r: 0.1, g: 0.5, b: 0.5},
-                fuzz: 1.0,
-            },
-        }) as Box<dyn wobject::Wobject + Send + Sync>,
-        Box::new(wobject::Sphere {
-            center: Point{x: 0.5, y: 0.0, z: -1.0},
-            radius: 0.5,
-            material: Material::Dielectric {
-                color: Color{r: 1.0, g: 1.0, b: 1.0},
-                eta: 3.0,
-            },
-        }) as Box<dyn wobject::Wobject + Send + Sync>,
+        // ground
         Box::new(wobject::Sphere {
             center: Point{x: 0.0, y: -100.5, z: -1.0},
             radius: 100.0,
             material: Material::Lambertian {
-                color: Color{r: 0.1, g: 0.1, b: 1.0},
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // center
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Lambertian {
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
     ]
+}
+
+fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![
+        // ground
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -100.5, z: -1.0},
+            radius: 100.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.8, g: 0.8, b: 0.0},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // left
+        Box::new(wobject::Sphere {
+            center: Point{x: -1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.8, g: 0.8, b: 0.8},
+                fuzz: 0.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // center
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Lambertian {
+                color: Color{r: 0.7, g: 0.3, b: 0.3},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+ 
+        // right
+        Box::new(wobject::Sphere {
+            center: Point{x: 1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.8, g: 0.6, b: 0.2},
+                fuzz: 0.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+     ]
+}
+
+fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![
+        // ground
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -100.5, z: -1.0},
+            radius: 100.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.8, g: 0.8, b: 0.0},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // left
+        Box::new(wobject::Sphere {
+            center: Point{x: -1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.8, g: 0.8, b: 0.8},
+                fuzz: 0.3,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // center
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Lambertian {
+                color: Color{r: 0.7, g: 0.3, b: 0.3},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+ 
+        // right
+        Box::new(wobject::Sphere {
+            center: Point{x: 1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.8, g: 0.6, b: 0.2},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+     ]
+}
+
+fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![
+        // ground
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -100.5, z: -1.0},
+            radius: 100.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.8, g: 0.8, b: 0.0},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // left
+        Box::new(wobject::Sphere {
+            center: Point{x: -1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Dielectric {
+                color: Color{r: 1.0, g: 1.0, b: 1.0},
+                eta: 1.5,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // center
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Dielectric {
+                color: Color{r: 1.0, g: 1.0, b: 1.0},
+                eta: 1.5,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+ 
+        // right
+        Box::new(wobject::Sphere {
+            center: Point{x: 1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.8, g: 0.6, b: 0.2},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+     ]
+}
+
+fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![
+        // ground
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -1000.5, z: 1.0},
+            radius: 1000.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Lambertian {
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+     ]
+}
+
+fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    let mut world = vec![
+        // ground
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -1000.5, z: 1.0},
+            radius: 1000.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        Box::new(wobject::Sphere {
+            center: Point{x: -0.4, y: 0.0, z: -3.0},
+            radius: 0.5,
+            material: Material::Lambertian {
+                color: Color{r: 0.4, g: 0.2, b: 0.1},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            radius: 0.5,
+            material: Material::Dielectric {
+                color: Color{r: 1.0, g: 1.0, b: 1.0},
+                eta: 1.5,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.4, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.7, g: 0.6, b: 0.5},
+                fuzz: 0.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+    ];
+
+    let mut rng = rand::thread_rng();
+    for a in -11..11 {
+        for b in -11..11 {
+            let material = rng.gen::<f32>();
+
+            let center = Point{
+                x: a as f32 + 0.9*rng.gen::<f32>(),
+                y: -0.4,
+                z: b  as f32 + 0.9*rng.gen::<f32>(),
+            };
+
+            let radius = 0.1;
+
+            let sphere;
+            if material < 0.6 {
+                sphere = Box::new(wobject::Sphere {
+                    center,
+                    radius,
+                    material: Material::Lambertian {
+                        color: Color::random(),
+                        fuzz: 1.0,
+                    },
+                }) as Box<dyn wobject::Wobject + Send + Sync>;
+            } else if material < 0.85 {
+                sphere = Box::new(wobject::Sphere {
+                    center,
+                    radius,
+                    material: Material::Metal {
+                        color: Color::random() * Color::random(),
+                        fuzz: rng.gen::<f32>(),
+                    },
+                }) as Box<dyn wobject::Wobject + Send + Sync>;
+            } else {
+                sphere = Box::new(wobject::Sphere {
+                    center,
+                    radius,
+                    material: Material::Dielectric {
+                        color: Color{r: 1.0, g: 1.0, b: 1.0},
+                        eta: 1.5,
+                    },
+                }) as Box<dyn wobject::Wobject + Send + Sync>;
+            }
+            world.push(sphere);
+        }
+    }
+
+    world
 }

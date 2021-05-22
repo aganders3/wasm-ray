@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 use crate::vec3::{Vec3, Point};
 
 #[derive(Clone, Copy, Debug)]
@@ -13,6 +15,15 @@ impl Color {
             r: 0.5 + 0.5 * normal.x,
             g: 0.5 + 0.5 * normal.y,
             b: 0.5 + 0.5 * normal.z,
+        }
+    }
+
+    pub fn random() -> Color{
+        let mut rng = rand::thread_rng();
+        Color {
+            r: rng.gen::<f32>(),
+            g: rng.gen::<f32>(),
+            b: rng.gen::<f32>(),
         }
     }
 }

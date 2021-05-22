@@ -3,7 +3,6 @@ use rand::prelude::*;
 use crate::ray::Color;
 use crate::vec3::Vec3;
 
-
 pub enum Material {
     NormalView,
     VantaBlack,
@@ -20,20 +19,23 @@ impl Material {
             Self::Metal{color: _, fuzz} => {
                 let direction = incoming - 2.0 * incoming.dot(&normal) * normal;
                 let d = Self::reflect(direction, *fuzz);
-                Some(d)
+                // TODO: weird "glowing rim" effect if this is included
+                // if !d.near_zero() && d.dot(&normal) > 0.0 { Some(d) } else { None }
+                if !d.near_zero() { Some(d) } else { Some(normal) }
             },
             Self::Lambertian{color: _, fuzz} => {
                 let d = Self::reflect(normal, *fuzz);
-                Some(d)
+                // if ! d.near_zero() && d.dot(&normal) > 0.0 { Some(d) } else { None }
+                if !d.near_zero() { Some(d) } else { Some(normal) }
             },
             Self::Dielectric{color: _, eta} => {
                 let d = Self::reflect_or_refract(incoming, normal, front_face, *eta);
-                Some(d)
+                if ! d.near_zero() { Some(d) } else { None }
             },
         }
     }
 
-    pub fn color(&self, incoming: Vec3, normal: Vec3) -> Color {
+    pub fn color(&self, normal: Vec3) -> Color {
         match self {
             Self::NormalView => Color::from_normal(&normal),
             Self::VantaBlack => Color{r: 0.0, g: 0.0, b: 0.0},
@@ -55,19 +57,24 @@ impl Material {
     fn refract(incoming_unit: Vec3, normal: Vec3, cos_theta: f32, refraction_ratio: f32) -> Vec3 {
         let perp = refraction_ratio * (incoming_unit + cos_theta * normal);
         let parallel = -(1.0 - perp.length_squared()).abs().sqrt() * normal;
-        perp + parallel
+        // TODO: this factor of 2 is a fudge
+        perp + 2.0 * parallel
     }
 
     fn reflect_or_refract(incoming: Vec3, normal: Vec3, front_face: bool, eta: f32) -> Vec3 {
+        // assume transition is always:
+        //   air-to-dielectric (front face)
+        //   or dielectric-to-air (inside face)
         let refraction_ratio = if front_face { 1.0 / eta } else { eta };
 
         let incoming_unit = incoming.unit();
         let cos_theta = (-incoming_unit).dot(&normal).min(1.0);
-        let sin_theta = (1.0 - cos_theta*cos_theta).sqrt();
 
-        Self::refract(incoming_unit, normal, cos_theta, refraction_ratio)
-        /*
+        // always refract
+        // Self::refract(incoming_unit, normal, cos_theta, refraction_ratio)
+
         // sometimes reflect, sometimes refract
+        let sin_theta = (1.0 - cos_theta*cos_theta).sqrt();
         let randf = thread_rng().gen::<f32>();
         if refraction_ratio * sin_theta > 1.0 || Self::reflectance(cos_theta, refraction_ratio) > randf {
             let direction = incoming - 2.0 * incoming.dot(&normal) * normal;
@@ -75,7 +82,6 @@ impl Material {
         } else {
             Self::refract(incoming_unit, normal, cos_theta, refraction_ratio)
         }
-        */
     }
 
     fn reflectance(cos_theta: f32, refraction_ratio: f32) -> f32 {
