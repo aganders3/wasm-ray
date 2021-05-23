@@ -15,6 +15,8 @@ pub struct Camera {
     vertical: Vec3,
     lower_left_corner: Point,
 
+    lens_radius: f32,
+
     anti_aliasing: u32,
     max_bounces: u8,
 }
@@ -24,8 +26,12 @@ fn degrees_to_radians(degrees: f32) -> f32 {
 }
 
 impl Camera {
-    pub fn new(lookfrom: Point, lookat: Point, vup: Vec3, vfov: f32, image_height: usize, image_width: usize, anti_aliasing: u32) -> Camera{
-        let focal_length = 1.0;
+    pub fn new(
+        lookfrom: Point, lookat: Point, vup: Vec3,
+        aperture: f32, focus_dist: f32,
+        vfov: f32, image_height: usize, image_width: usize,
+        anti_aliasing: u32
+    ) -> Camera {
         let aspect_ratio = (image_width as f32) / (image_height as f32);
 
         let h = degrees_to_radians(vfov / 2.0).tan();
@@ -37,16 +43,11 @@ impl Camera {
         let v = w.cross(&u);
 
         let origin = lookfrom;
-        let horizontal = viewport_width * u;
-        let vertical = viewport_height * v;
-        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
-        /*
-        let origin = Point{x: 0.0, y: 0.0, z: 0.0};
-        let horizontal = Vec3{x: viewport_width, y: 0.0, z: 0.0};
-        let vertical = Vec3{x: 0.0, y: viewport_height, z: 0.0};
-        let center = Point{x: 0.0, y: 0.0, z: -focal_length};
-        let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 + center;
-        */
+        let horizontal = focus_dist * viewport_width * u;
+        let vertical = focus_dist * viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - focus_dist * w;
+
+        let lens_radius = aperture / 2.0;
 
         Camera {
             image_height,
@@ -55,6 +56,7 @@ impl Camera {
             horizontal,
             vertical,
             lower_left_corner,
+            lens_radius,
             anti_aliasing,
             max_bounces: 16,
         }
@@ -103,9 +105,13 @@ impl Camera {
 
     pub fn get_ray(&self, i: f32, j: f32) -> Ray {
         let [u, v] = self.u_v_from_i_j(i, j);
+        // TODO: only do this if lens_radius > 0
+        let rd = self.lens_radius * Vec3::random_in_unit_disk();
+        let offset = self.horizontal.unit() * rd.x + self.vertical.unit() * rd.y;
+
         Ray {
-            origin: self.origin,
-            direction: self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin,
+            origin: self.origin + offset,
+            direction: self.lower_left_corner + u * self.horizontal + v * self.vertical - self.origin - offset,
             depth: 0,
             color: Color{r: 1.0, g: 1.0, b: 1.0},
         }

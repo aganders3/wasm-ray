@@ -43,6 +43,7 @@ pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
         Point{x: -2.0, y: -2.0, z: 1.0},
         Point{x: 0.0, y: 0.0, z: -1.0},
         Vec3{x: 0.0, y: 1.0, z: 0.0},
+        0.1, 10.0,
         90.0, image_height, image_width, aa,
     );
 
@@ -82,6 +83,7 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
         Point{x: 13.0, y: 2.0, z: 3.0},
         Point{x: 0.0, y: 0.0, z: 0.0},
         Vec3{x: 0.0, y: 1.0, z: 0.0},
+        0.1, 10.0,
         20.0, image_height, image_width, aa,
     );
 
