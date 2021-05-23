@@ -49,7 +49,7 @@ impl Material {
 
     fn reflect(direction: Vec3, spread: f32) -> Vec3 {
         if spread > 0.0 {
-            let scatter_direction = Vec3::random_unit().unit();
+            let scatter_direction = Vec3::random_in_unit_sphere().unit();
             direction + spread * scatter_direction
         } else {
             direction

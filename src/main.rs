@@ -27,7 +27,7 @@ fn main() {
 
     let width = matches.value_of("width").unwrap_or("800").parse::<u32>().unwrap_or(800);
     let height = matches.value_of("height").unwrap_or("450").parse::<u32>().unwrap_or(450);
-    let aa = matches.value_of("aa").unwrap_or("1").parse::<u8>().unwrap_or(1);
+    let aa = matches.value_of("aa").unwrap_or("1").parse::<u32>().unwrap_or(1);
     let fname = matches.value_of("fname").unwrap_or("image.png");
 
     println!("Calling trace_rays_()");

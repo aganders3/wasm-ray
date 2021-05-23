@@ -16,7 +16,7 @@ use camera::Camera;
 use im::Image;
 use material::Material;
 use ray::Color;
-use vec3::Point;
+use vec3::{Point, Vec3};
 
 // When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
 // allocator.
@@ -26,11 +26,11 @@ static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
 
 
 #[wasm_bindgen]
-pub fn trace_rays_wasm(width: u32, height: u32, aa: u8) -> *const u8 {
+pub fn trace_rays_wasm(width: u32, height: u32, aa: u32) -> *const u8 {
     trace_rays(width, height, aa).image.as_ptr()
 }
 
-pub fn trace_rays(width: u32, height: u32, aa: u8) -> Image {
+pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
     // image
     let image_width = width as usize;
     let image_height= height as usize;
@@ -38,7 +38,13 @@ pub fn trace_rays(width: u32, height: u32, aa: u8) -> Image {
     let mut image = Image::new(image_height, image_width);
 
     // camera
-    let cam = Camera::new(image_height, image_width, aa);
+    // let cam = Camera::new(90.0, image_height, image_width, aa);
+    let cam = Camera::new(
+        Point{x: -2.0, y: -2.0, z: 1.0},
+        Point{x: 0.0, y: 0.0, z: -1.0},
+        Vec3{x: 0.0, y: 1.0, z: 0.0},
+        90.0, image_height, image_width, aa,
+    );
 
     // world
     let world = scene();
@@ -54,7 +60,7 @@ pub fn trace_rays(width: u32, height: u32, aa: u8) -> Image {
     image
 }
 
-pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
+pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
     // image
     let image_width = width as usize;
     let image_height= height as usize;
@@ -62,11 +68,27 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u8) -> Image {
     let mut image = Image::new(image_height, image_width);
 
     // camera
-    let cam = Camera::new(image_height, image_width, aa);
+    // camera for scene 18
+    /*
+    let cam = Camera::new(
+        Point{x: -2.0, y: 2.0, z: 1.0},
+        Point{x: 0.0, y: 0.0, z: -1.0},
+        Vec3{x: 0.0, y: 1.0, z: 0.0},
+        90.0, image_height, image_width, aa,
+    );
+    */
+    // camera for cover scene
+    let cam = Camera::new(
+        Point{x: 13.0, y: 2.0, z: 3.0},
+        Point{x: 0.0, y: 0.0, z: 0.0},
+        Vec3{x: 0.0, y: 1.0, z: 0.0},
+        20.0, image_height, image_width, aa,
+    );
 
     // world
     // println!("Generating the world...");
     // let world = scene_14();
+    // let world = scene_18();
     let world = cover_scene();
 
     // render
@@ -245,6 +267,50 @@ fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
+fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+    vec![
+        // ground
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: -100.5, z: -1.0},
+            radius: 100.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.8, g: 0.8, b: 0.0},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // left
+        Box::new(wobject::Sphere {
+            center: Point{x: -1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Dielectric {
+                color: Color{r: 1.0, g: 1.0, b: 1.0},
+                eta: 1.5,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+
+        // center
+        Box::new(wobject::Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Lambertian {
+                color: Color{r: 0.1, g: 0.2, b: 0.5},
+                fuzz: 1.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+ 
+        // right
+        Box::new(wobject::Sphere {
+            center: Point{x: 1.0, y: 0.0, z: -1.0},
+            radius: 0.5,
+            material: Material::Metal {
+                color: Color{r: 0.8, g: 0.6, b: 0.2},
+                fuzz: 0.0,
+            },
+        }) as Box<dyn wobject::Wobject + Send + Sync>,
+     ]
+}
+
 fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
@@ -272,7 +338,7 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     let mut world = vec![
         // ground
         Box::new(wobject::Sphere {
-            center: Point{x: 0.0, y: -1000.5, z: 1.0},
+            center: Point{x: 0.0, y: -1000.0, z: 0.0},
             radius: 1000.0,
             material: Material::Lambertian {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
@@ -281,8 +347,8 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
         Box::new(wobject::Sphere {
-            center: Point{x: -1.0, y: 0.0, z: -3.0},
-            radius: 0.5,
+            center: Point{x: -4.0, y: 1.0, z: 0.0},
+            radius: 1.0,
             material: Material::Lambertian {
                 color: Color{r: 0.4, g: 0.2, b: 0.1},
                 fuzz: 1.0,
@@ -290,8 +356,8 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
         Box::new(wobject::Sphere {
-            center: Point{x: 0.0, y: 0.0, z: -2.0},
-            radius: 0.5,
+            center: Point{x: 0.0, y: 1.0, z: 0.0},
+            radius: 1.0,
             material: Material::Dielectric {
                 color: Color{r: 1.0, g: 1.0, b: 1.0},
                 eta: 1.5,
@@ -299,8 +365,8 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
         Box::new(wobject::Sphere {
-            center: Point{x: 0.5, y: 0.0, z: -1.0},
-            radius: 0.5,
+            center: Point{x: 4.0, y: 1.0, z: 0.0},
+            radius: 1.0,
             material: Material::Metal {
                 color: Color{r: 0.7, g: 0.6, b: 0.5},
                 fuzz: 0.0,
@@ -315,14 +381,14 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
 
             let center = Point{
                 x: a as f32 + 0.9*rng.gen::<f32>(),
-                y: -0.4,
+                y: 0.2,
                 z: b  as f32 + 0.9*rng.gen::<f32>(),
             };
 
-            let radius = 0.1;
+            let radius = 0.2;
 
             let sphere;
-            if material < 0.6 {
+            if material < 0.8 {
                 sphere = Box::new(wobject::Sphere {
                     center,
                     radius,
@@ -331,7 +397,7 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                         fuzz: 1.0,
                     },
                 }) as Box<dyn wobject::Wobject + Send + Sync>;
-            } else if material < 0.85 {
+            } else if material < 0.95 {
                 sphere = Box::new(wobject::Sphere {
                     center,
                     radius,

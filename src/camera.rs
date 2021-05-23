@@ -15,21 +15,38 @@ pub struct Camera {
     vertical: Vec3,
     lower_left_corner: Point,
 
-    anti_aliasing: u8,
+    anti_aliasing: u32,
     max_bounces: u8,
 }
 
+fn degrees_to_radians(degrees: f32) -> f32 {
+    degrees * 3.1415926 / 180.0
+}
+
 impl Camera {
-    pub fn new(image_height: usize, image_width: usize, anti_aliasing: u8) -> Camera{
+    pub fn new(lookfrom: Point, lookat: Point, vup: Vec3, vfov: f32, image_height: usize, image_width: usize, anti_aliasing: u32) -> Camera{
         let focal_length = 1.0;
         let aspect_ratio = (image_width as f32) / (image_height as f32);
-        let origin = Point{x: 0.0, y: 0.0, z: 0.0};
-        let viewport_height = 2.0;
+
+        let h = degrees_to_radians(vfov / 2.0).tan();
+        let viewport_height = 2.0 * h;
         let viewport_width = aspect_ratio * viewport_height;
+
+        let w = (lookfrom - lookat).unit();
+        let u = vup.cross(&w).unit();
+        let v = w.cross(&u);
+
+        let origin = lookfrom;
+        let horizontal = viewport_width * u;
+        let vertical = viewport_height * v;
+        let lower_left_corner = origin - horizontal / 2.0 - vertical / 2.0 - w;
+        /*
+        let origin = Point{x: 0.0, y: 0.0, z: 0.0};
         let horizontal = Vec3{x: viewport_width, y: 0.0, z: 0.0};
         let vertical = Vec3{x: 0.0, y: viewport_height, z: 0.0};
         let center = Point{x: 0.0, y: 0.0, z: -focal_length};
         let lower_left_corner = origin - horizontal/2.0 - vertical/2.0 + center;
+        */
 
         Camera {
             image_height,
@@ -39,7 +56,7 @@ impl Camera {
             vertical,
             lower_left_corner,
             anti_aliasing,
-            max_bounces: 32,
+            max_bounces: 16,
         }
     }
 
@@ -102,10 +119,12 @@ impl Camera {
         } else {
             let mut rng = rand::thread_rng();
             for _ in 0..self.anti_aliasing {
-                rays.push_back(self.get_ray(
-                    i + rng.gen::<f32>(),
-                    j + rng.gen::<f32>(),
-                ))
+                rays.push_back(
+                    self.get_ray(
+                        i + rng.gen::<f32>(),
+                        j + rng.gen::<f32>(),
+                    )
+                )
             }
         }
         rays

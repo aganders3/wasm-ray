@@ -16,18 +16,29 @@ pub type Point = Vec3;
 impl Vec3 {
     pub fn random() -> Self {
         let mut rng = rand::thread_rng();
-        Vec3{
+        Vec3 {
             x: rng.gen::<f32>(),
             y: rng.gen::<f32>(),
             z: rng.gen::<f32>(),
         }
     }
 
-    pub fn random_unit() -> Self {
+    pub fn random_in_unit_sphere() -> Self {
         loop {
             let v = 2.0 * Vec3::random() - 1.0;
-            if v.length_squared() >= 1.0 { continue; }
-            return v;
+            if v.length_squared() >= 1.0 { continue; } else { return v; }
+        }
+    }
+
+    pub fn random_in_unit_disk() -> Self {
+        let mut rng = rand::thread_rng();
+        loop {
+            let v = Vec3 {
+                x: rng.gen::<f32>(),
+                y: rng.gen::<f32>(),
+                z: 0.0,
+            };
+            if v.length_squared() >= 1.0 { continue; } else { return v; }
         }
     }
 
