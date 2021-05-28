@@ -2,9 +2,9 @@
 
 ![Cover Image](/renders/cover_image.png)
 
-~~A live demo of the current code should be available at https://aga3.xyz/wasm-ray~~
+A live demo ~~of the current code~~ is available at https://aga3.xyz/wasm-ray
 
-*The wasm-based live demo is probably not working for now.*
+*The wasm-based live demo lags far behind the native version due to performance limitations.*
 
 I pretty quickly ran into performance issues with the wasm version. I have not
 been able to successfully parallelize that version, and I'm not sure it's even

@@ -3,7 +3,7 @@ use std::path::Path;
 use clap::{Arg, App};
 
 
-use wasm_ray::trace_rays_parallel;
+use wasm_ray::{trace_rays, trace_rays_parallel};
 
 
 fn main() {
@@ -23,16 +23,26 @@ fn main() {
                           .arg(Arg::with_name("fname")
                                .help("output file name")
                                .index(4))
+                          .arg(Arg::with_name("non-parallel")
+                               .long("non-parallel")
+                               .required(false)
+                               .takes_value(false))
                           .get_matches();
 
     let width = matches.value_of("width").unwrap_or("800").parse::<u32>().unwrap_or(800);
     let height = matches.value_of("height").unwrap_or("450").parse::<u32>().unwrap_or(450);
     let aa = matches.value_of("aa").unwrap_or("1").parse::<u32>().unwrap_or(1);
     let fname = matches.value_of("fname").unwrap_or("image.png");
+    let parallel = !matches.is_present("non-parallel");
 
     println!("Calling trace_rays_()");
 
-    let im = trace_rays_parallel(width, height, aa);
+    let im;
+    if parallel {
+        im = trace_rays_parallel(width, height, aa);
+    } else {
+        im = trace_rays(width, height, aa);
+    }
 
     let result = image::save_buffer(&Path::new(fname), &im.image, width, height, image::ColorType::Rgb8);
 

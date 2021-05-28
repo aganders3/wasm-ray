@@ -387,6 +387,10 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 z: b  as f32 + 0.9*rng.gen::<f32>(),
             };
 
+            if (center - Point{x: 4.0, y: 0.2, z: 0.0}).length() <= 0.9 {
+                continue;
+            }
+
             let radius = 0.2;
 
             let sphere;
@@ -395,7 +399,7 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                     center,
                     radius,
                     material: Material::Lambertian {
-                        color: Color::random(),
+                        color: Color::random() * Color::random(),
                         fuzz: 1.0,
                     },
                 }) as Box<dyn wobject::Wobject + Send + Sync>;
@@ -404,7 +408,7 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                     center,
                     radius,
                     material: Material::Metal {
-                        color: Color::random() * Color::random(),
+                        color: Color::random(),
                         fuzz: rng.gen::<f32>(),
                     },
                 }) as Box<dyn wobject::Wobject + Send + Sync>;

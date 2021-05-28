@@ -43,7 +43,7 @@ impl Wobject for Sphere {
             }
 
             let p = ray.at(t);
-            let outward_normal = (p - self.center).unit();
+            let outward_normal = (self.radius * (p - self.center)).unit();
             let front_face = ray.direction.dot(&outward_normal) < 0.0;
             let normal = if front_face { outward_normal } else { -outward_normal };
 
