@@ -7,7 +7,7 @@ mod utils;
 
 mod camera;
 mod im;
-mod material;
+pub mod material;
 mod ray;
 mod vec3;
 mod wobject;
@@ -111,11 +111,11 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
     image
 }
 
-fn empty() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn empty() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![]
 }
 
-fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -139,7 +139,7 @@ fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     ]
 }
 
-fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -183,7 +183,7 @@ fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
-fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -227,7 +227,7 @@ fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
-fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -271,7 +271,7 @@ fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
-fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
