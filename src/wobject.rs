@@ -1,11 +1,16 @@
+use itertools::izip;
+
 use crate::material::Material;
 use crate::ray::{Ray, Color};
-use crate::vec3::{Vec3, Point};
+use crate::vec3::{Point, Vec3};
 
+// TODO: restructure to fit AABB as well, where we don't want to calculate a normal or color
+// might just be able to make everything except p and t optional?
+// or move them to some nested struct...
 pub struct Hit {
     pub p: Point,
-    pub normal: Vec3,
     pub t: f32,
+    pub normal: Vec3,
     pub front_face: bool,
     pub scatter: Option<Ray>,
     pub color: Color,
@@ -13,6 +18,33 @@ pub struct Hit {
 
 pub trait Wobject {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
+}
+
+pub struct AABB {
+    pub min: Point,
+    pub max: Point,
+}
+
+impl AABB {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> bool {
+        for (d, o, min, max) in izip!(ray.direction.into_iter(), ray.origin.into_iter(), self.min.into_iter(), self.max.into_iter())
+        {
+            let inv = 1.0 / d;
+            let mut t0 = inv * (min - o);
+            let mut t1 = inv * (max - o);
+            if inv < 0.0 {
+                let tmp = t0;
+                t0 = t1;
+                t1 = tmp;
+            }
+            let t_min = t0.max(t_min);
+            let t_max = t1.min(t_max);
+            if t_max <= t_min {
+                return false
+            }
+        }
+        true
+    }
 }
 
 pub struct Sphere {
@@ -56,8 +88,9 @@ impl Wobject for Sphere {
                 Some(d) => Some(Ray{origin: p, direction: d, depth, color: ray.color * color}),
                 None => None,
             };
-            return Some(Hit{p, normal, t, front_face, scatter, color});
+            return Some(Hit{p, t, normal, front_face, scatter, color});
         }
         None
     }
 }
+

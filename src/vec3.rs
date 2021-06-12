@@ -2,7 +2,6 @@ use rand::prelude::*;
 
 use std::ops;
 
-
 // TODO: make this generic over f32 and f64
 #[derive(Clone, Copy, Debug, Default)]
 pub struct Vec3 {
@@ -12,6 +11,9 @@ pub struct Vec3 {
 }
 pub type Point = Vec3;
 
+pub enum Vec3Dim {
+    X, Y, Z
+}
 
 impl Vec3 {
     pub fn random() -> Self {
@@ -167,3 +169,25 @@ impl ops::Neg for Vec3 {
         Self{x: -self.x, y: -self.y, z: -self.z}
     }
 }
+
+impl ops::Index<Vec3Dim> for Vec3 {
+    type Output = f32;
+    
+    fn index(&self, dim: Vec3Dim) -> &Self::Output {
+        match dim {
+            Vec3Dim::X => &self.x,
+            Vec3Dim::Y => &self.y,
+            Vec3Dim::Z => &self.z,
+        }
+    }
+}
+
+impl std::iter::IntoIterator for Vec3 {
+    type Item = f32;
+    type IntoIter = std::array::IntoIter<f32, 3>;
+
+    fn into_iter(self) -> Self::IntoIter {
+        std::array::IntoIter::new([self.x, self.y, self.z])
+    }
+}
+
