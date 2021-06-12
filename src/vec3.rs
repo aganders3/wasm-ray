@@ -167,3 +167,17 @@ impl ops::Neg for Vec3 {
         Self{x: -self.x, y: -self.y, z: -self.z}
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_const() {
+        let v0 = Vec3{x: 1.0, y: 2.0, z: 3.0};
+        let v1 = 1.0 + v0;
+        assert_eq!(v1.x, 2.0);
+        assert_eq!(v1.y, 3.0);
+        assert_eq!(v1.z, 4.0);
+    }
+}

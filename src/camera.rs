@@ -22,7 +22,7 @@ pub struct Camera {
 }
 
 fn degrees_to_radians(degrees: f32) -> f32 {
-    degrees * 3.1415926 / 180.0
+    degrees * std::f32::consts::PI / 180.0
 }
 
 impl Camera {

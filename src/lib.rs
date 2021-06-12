@@ -50,6 +50,8 @@ pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
     // world
     let world = scene();
 
+    log!("Rendering...");
+
     // render
     for j in 0..image_height {
         for i in 0..image_width {
