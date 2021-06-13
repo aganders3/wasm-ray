@@ -99,3 +99,21 @@ impl Ray {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn blend_colors() {
+        let colors = vec![
+            Color{r: 0.0, g: 0.0, b: 0.0},
+            Color{r: 0.5, g: 0.5, b: 0.5},
+            Color{r: 1.0, g: 1.0, b: 1.0},
+        ];
+
+        let c = blend(colors);
+
+        assert!(c.r == 0.5 && c.g == 0.5 && c.b == 0.5);
+
+    }
+}

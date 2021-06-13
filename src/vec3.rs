@@ -55,7 +55,7 @@ impl Vec3 {
     }
 
     pub fn length_squared(&self) -> f32 {
-        self.x * self.x + self.y * self.y + self.z * self.z
+        self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
     pub fn length(&self) -> f32 {
@@ -176,8 +176,6 @@ mod tests {
     fn add_const() {
         let v0 = Vec3{x: 1.0, y: 2.0, z: 3.0};
         let v1 = 1.0 + v0;
-        assert_eq!(v1.x, 2.0);
-        assert_eq!(v1.y, 3.0);
-        assert_eq!(v1.z, 4.0);
+        assert!(v1.x == 2.0 && v1.y == 3.0 && v1.z == 4.0);
     }
 }
