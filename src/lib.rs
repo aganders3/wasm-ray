@@ -1,9 +1,5 @@
 use rand::prelude::*;
 use rayon::prelude::*;
-use wasm_bindgen::prelude::*;
-
-#[macro_use]
-mod utils;
 
 mod camera;
 mod im;
@@ -17,18 +13,6 @@ use im::Image;
 use material::Material;
 use ray::Color;
 use vec3::{Point, Vec3};
-
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-// allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-
-#[wasm_bindgen]
-pub fn trace_rays_wasm(width: u32, height: u32, aa: u32) -> *const u8 {
-    trace_rays(width, height, aa).image.as_ptr()
-}
 
 pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
     // image
@@ -49,8 +33,6 @@ pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
 
     // world
     let world = scene();
-
-    log!("Rendering...");
 
     // render
     for j in 0..image_height {
