@@ -152,7 +152,7 @@ pub fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},
@@ -196,7 +196,7 @@ pub fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},
@@ -240,7 +240,7 @@ pub fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 eta: 1.5,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},
@@ -284,7 +284,7 @@ pub fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},

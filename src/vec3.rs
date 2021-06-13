@@ -59,7 +59,7 @@ impl Vec3 {
     }
 
     pub fn length(&self) -> f32 {
-       self.length_squared().sqrt() 
+       self.length_squared().sqrt()
     }
 
     pub fn unit(&self) -> Self {
