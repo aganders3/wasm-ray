@@ -1,13 +1,9 @@
 use rand::prelude::*;
 use rayon::prelude::*;
-use wasm_bindgen::prelude::*;
-
-#[macro_use]
-mod utils;
 
 mod camera;
 mod im;
-mod material;
+pub mod material;
 mod ray;
 mod vec3;
 mod wobject;
@@ -17,18 +13,6 @@ use im::Image;
 use material::Material;
 use ray::Color;
 use vec3::{Point, Vec3};
-
-// When the `wee_alloc` feature is enabled, use `wee_alloc` as the global
-// allocator.
-#[cfg(feature = "wee_alloc")]
-#[global_allocator]
-static ALLOC: wee_alloc::WeeAlloc = wee_alloc::WeeAlloc::INIT;
-
-
-#[wasm_bindgen]
-pub fn trace_rays_wasm(width: u32, height: u32, aa: u32) -> *const u8 {
-    trace_rays(width, height, aa).image.as_ptr()
-}
 
 pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
     // image
@@ -109,11 +93,11 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
     image
 }
 
-fn empty() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn empty() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![]
 }
 
-fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -137,7 +121,7 @@ fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     ]
 }
 
-fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -168,7 +152,7 @@ fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},
@@ -181,7 +165,7 @@ fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
-fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -212,7 +196,7 @@ fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},
@@ -225,7 +209,7 @@ fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
-fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -256,7 +240,7 @@ fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 eta: 1.5,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},
@@ -269,7 +253,7 @@ fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
      ]
 }
 
-fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
+pub fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
     vec![
         // ground
         Box::new(wobject::Sphere {
@@ -300,7 +284,7 @@ fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                 fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
- 
+
         // right
         Box::new(wobject::Sphere {
             center: Point{x: 1.0, y: 0.0, z: -1.0},

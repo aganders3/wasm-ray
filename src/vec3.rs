@@ -57,11 +57,11 @@ impl Vec3 {
     }
 
     pub fn length_squared(&self) -> f32 {
-        self.x * self.x + self.y * self.y + self.z * self.z
+        self.x.powi(2) + self.y.powi(2) + self.z.powi(2)
     }
 
     pub fn length(&self) -> f32 {
-       self.length_squared().sqrt() 
+       self.length_squared().sqrt()
     }
 
     pub fn unit(&self) -> Self {
@@ -172,7 +172,7 @@ impl ops::Neg for Vec3 {
 
 impl ops::Index<Vec3Dim> for Vec3 {
     type Output = f32;
-    
+
     fn index(&self, dim: Vec3Dim) -> &Self::Output {
         match dim {
             Vec3Dim::X => &self.x,
@@ -191,3 +191,14 @@ impl std::iter::IntoIterator for Vec3 {
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn add_const() {
+        let v0 = Vec3{x: 1.0, y: 2.0, z: 3.0};
+        let v1 = 1.0 + v0;
+        assert!(v1.x == 2.0 && v1.y == 3.0 && v1.z == 4.0);
+    }
+}

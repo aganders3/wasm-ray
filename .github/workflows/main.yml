@@ -19,12 +19,18 @@ jobs:
       - uses: actions-rs/toolchain@v1
         with:
           toolchain: stable
-      
-      - name: Install wasm-pack
-        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
-      - name: Build for dist
-        run: make wasm-init && make wasm-dist
+      - name: Lint
+        run: cargo clippy
+
+      - name: Build and Test
+        run: cargo test
+
+      # - name: Install wasm-pack
+      #   run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      # - name: Build for dist
+      #   run: make wasm-init && make wasm-dist
 
       # - name: Deploy
       #   uses: peaceiris/actions-gh-pages@v3

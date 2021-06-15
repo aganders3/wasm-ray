@@ -58,8 +58,8 @@ impl Wobject for Sphere {
         let oc = ray.origin - self.center;
         let a = ray.direction.length_squared();
         let half_b = oc.dot(&ray.direction);
-        let c = oc.length_squared() - self.radius * self.radius;
-        let discriminant = half_b * half_b - a * c;
+        let c = oc.length_squared() - (self.radius * self.radius);
+        let discriminant = half_b.powi(2) - a * c;
 
         if discriminant > 0.0 {
             // TODO: this is a little ugly
@@ -84,13 +84,63 @@ impl Wobject for Sphere {
             let color = self.material.color(normal);
             let depth = ray.depth + 1;
 
-            let scatter = match direction {
-                Some(d) => Some(Ray{origin: p, direction: d, depth, color: ray.color * color}),
-                None => None,
-            };
-            return Some(Hit{p, t, normal, front_face, scatter, color});
+            let scatter = direction.map(
+                |d| Ray{origin: p, direction: d, depth, color: ray.color * color}
+            );
+
+            return Some(Hit{p, normal, t, front_face, scatter, color});
         }
         None
     }
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn hit_sphere() {
+        let sphere = Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            radius: 1.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
+                fuzz: 1.0,
+            },
+        };
+
+        let ray = Ray{
+            origin: Point{x: 0.0, y: 0.0, z: 0.0},
+            direction: Vec3{x: 0.0, y: 0.0, z: -1.0},
+            depth: 0,
+            color: Color{r: 1.0, g: 1.0, b: 1.0},
+        };
+
+        let hit = sphere.hit(&ray, 0.0, f32::INFINITY);
+
+        assert!(hit.is_some());
+    }
+
+    #[test]
+    fn miss_sphere() {
+        let sphere = Sphere {
+            center: Point{x: 0.0, y: 100.0, z: -2.0},
+            radius: 1.0,
+            material: Material::Lambertian {
+                color: Color{r: 0.5, g: 0.5, b: 0.5},
+                fuzz: 1.0,
+            },
+        };
+
+        let ray = Ray{
+            origin: Point{x: 0.0, y: 0.0, z: 0.0},
+            direction: Vec3{x: 0.0, y: 0.0, z: -1.0},
+            depth: 0,
+            color: Color{r: 1.0, g: 1.0, b: 1.0},
+        };
+
+        let hit = sphere.hit(&ray, 0.0, f32::INFINITY);
+
+        assert!(hit.is_none());
+    }
+}
