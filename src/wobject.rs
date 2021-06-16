@@ -71,10 +71,7 @@ mod tests {
         let sphere = Sphere {
             center: Point{x: 0.0, y: 0.0, z: -2.0},
             radius: 1.0,
-            material: Material::Lambertian {
-                color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
-            },
+            material: Material::NormalView,
         };
 
         let ray = Ray{
@@ -94,10 +91,7 @@ mod tests {
         let sphere = Sphere {
             center: Point{x: 0.0, y: 100.0, z: -2.0},
             radius: 1.0,
-            material: Material::Lambertian {
-                color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
-            },
+            material: Material::NormalView,
         };
 
         let ray = Ray{

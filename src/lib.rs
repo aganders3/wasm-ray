@@ -105,7 +105,6 @@ pub fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 100.0,
             material: Material::Lambertian {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -115,7 +114,6 @@ pub fn scene_10() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 0.5,
             material: Material::Lambertian {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
     ]
@@ -129,7 +127,6 @@ pub fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 100.0,
             material: Material::Lambertian {
                 color: Color{r: 0.8, g: 0.8, b: 0.0},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -149,7 +146,6 @@ pub fn scene_11() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 0.5,
             material: Material::Lambertian {
                 color: Color{r: 0.7, g: 0.3, b: 0.3},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -173,7 +169,6 @@ pub fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 100.0,
             material: Material::Lambertian {
                 color: Color{r: 0.8, g: 0.8, b: 0.0},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -193,7 +188,6 @@ pub fn scene_12() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 0.5,
             material: Material::Lambertian {
                 color: Color{r: 0.7, g: 0.3, b: 0.3},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -217,7 +211,6 @@ pub fn scene_14() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 100.0,
             material: Material::Lambertian {
                 color: Color{r: 0.8, g: 0.8, b: 0.0},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -261,7 +254,6 @@ pub fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 100.0,
             material: Material::Lambertian {
                 color: Color{r: 0.8, g: 0.8, b: 0.0},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -281,7 +273,6 @@ pub fn scene_18() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 0.5,
             material: Material::Lambertian {
                 color: Color{r: 0.1, g: 0.2, b: 0.5},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -305,7 +296,6 @@ fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 1000.0,
             material: Material::Lambertian {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -314,7 +304,6 @@ fn scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 0.5,
             material: Material::Lambertian {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
      ]
@@ -328,7 +317,6 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 1000.0,
             material: Material::Lambertian {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -337,7 +325,6 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
             radius: 1.0,
             material: Material::Lambertian {
                 color: Color{r: 0.4, g: 0.2, b: 0.1},
-                fuzz: 1.0,
             },
         }) as Box<dyn wobject::Wobject + Send + Sync>,
 
@@ -384,7 +371,6 @@ fn cover_scene() -> Vec<Box<dyn wobject::Wobject + Send + Sync>> {
                     radius,
                     material: Material::Lambertian {
                         color: Color::random() * Color::random(),
-                        fuzz: 1.0,
                     },
                 }) as Box<dyn wobject::Wobject + Send + Sync>;
             } else if material < 0.95 {

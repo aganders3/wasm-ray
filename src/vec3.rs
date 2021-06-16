@@ -1,6 +1,6 @@
 use rand::prelude::*;
 
-use std::ops;
+use std::{cmp, ops};
 
 
 // TODO: make this generic over f32 and f64
@@ -168,6 +168,13 @@ impl ops::Neg for Vec3 {
     }
 }
 
+impl cmp::PartialEq for Vec3 {
+    fn eq(&self, other: &Self) -> bool {
+        let e = 1e-8;
+        (self.x - other.x).abs() < e && (self.y - other.y).abs() < e && (self.z - other.z).abs() < e
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -176,6 +183,7 @@ mod tests {
     fn add_const() {
         let v0 = Vec3{x: 1.0, y: 2.0, z: 3.0};
         let v1 = 1.0 + v0;
-        assert!(v1.x == 2.0 && v1.y == 3.0 && v1.z == 4.0);
+        // assert!(v1.x == 2.0 && v1.y == 3.0 && v1.z == 4.0);
+        assert_eq!(v1, Vec3{x: 2.0, y: 3.0, z: 4.0});
     }
 }

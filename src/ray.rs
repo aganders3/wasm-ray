@@ -59,6 +59,13 @@ impl std::ops::Mul<Color> for Color {
     }
 }
 
+impl std::cmp::PartialEq for Color {
+    fn eq(&self, other: &Self) -> bool {
+        let e = 1e-8;
+        (self.r - other.r).abs() < e && (self.g - other.g).abs() < e && (self.b - other.b).abs() < e
+    }
+}
+
 pub fn blend(colors: Vec<Color>) -> Color {
     let mut r = 0.0;
     let mut g = 0.0;
