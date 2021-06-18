@@ -7,7 +7,7 @@ pub enum Material {
     NormalView,
     VantaBlack,
     Metal{color: Color, fuzz: f32},
-    Lambertian{color: Color, fuzz: f32},
+    Lambertian{color: Color},
     Dielectric{color: Color, eta: f32},
 }
 
@@ -25,8 +25,8 @@ impl Material {
                 // if !d.near_zero() { Some(d) } else { Some(incoming) }
                 Some(d)
             },
-            Self::Lambertian{color: _, fuzz} => {
-                let d = Self::reflect(normal, *fuzz);
+            Self::Lambertian{color: _} => {
+                let d = Self::reflect(normal, 1.0);
                 // if ! d.near_zero() && d.dot(&normal) > 0.0 { Some(d) } else { None }
                 if !d.near_zero() { Some(d) } else { Some(normal) }
             },
@@ -38,10 +38,11 @@ impl Material {
     }
 
     pub fn color(&self, normal: Vec3) -> Color {
+        // TODO: check if front face for coloring as well?
         match self {
             Self::NormalView => Color::from_normal(&normal),
             Self::VantaBlack => Color{r: 0.0, g: 0.0, b: 0.0},
-            Self::Metal{color, fuzz: _} | Self::Lambertian{color, fuzz: _} | Self::Dielectric{color, eta: _} => {
+            Self::Metal{color, fuzz: _} | Self::Lambertian{color} | Self::Dielectric{color, eta: _} => {
                 *color
             },
         }
@@ -88,5 +89,88 @@ impl Material {
         // Schlick's approximation for reflectance
         let r0 = ((1.0 - refraction_ratio) / (1.0 + refraction_ratio)).powf(2.0);
         r0 + (1.0 - r0) * (1.0 - cos_theta).powf(5.0)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn scatter_normalview() {
+        let incoming = Vec3{x: 0.0, y: 0.0, z: -1.0};
+        let normal = Vec3{x: 0.0, y: 0.0, z: 1.0};
+
+        let scatter = Material::NormalView.scatter(incoming, normal, true);
+        assert!(scatter.is_none());
+
+        let color = Material::NormalView.color(normal);
+        assert_eq!(color, Color{r: 0.5, g: 0.5, b: 1.0});
+    }
+
+    #[test]
+    fn scatter_vantablack() {
+        let incoming = Vec3{x: 0.0, y: 0.0, z: -1.0};
+        let normal = Vec3{x: 0.0, y: 0.0, z: 1.0};
+
+        let scatter = Material::VantaBlack.scatter(incoming, normal, true);
+        assert!(scatter.is_none());
+
+        let color = Material::VantaBlack.color(normal);
+        assert_eq!(color, Color{r: 0.0, g: 0.0, b: 0.0});
+    }
+
+    #[test]
+    fn scatter_metal() {
+        let metal = Material::Metal{color: Color{r: 1.0, g: 1.0, b: 1.0}, fuzz: 0.0};
+
+        let incoming = Vec3{x: 0.0, y: 0.0, z: -1.0};
+        let normal = Vec3{x: 0.577, y: 0.577, z: 0.577};
+
+        let scatter = metal.scatter(incoming, normal, true);
+        assert!(scatter.is_some());
+        assert!(
+            scatter.expect("Metal reflection should produce scatter!") ==
+            Vec3 {
+                x: 0.66585803,
+                y: 0.66585803,
+                z: -0.33414197,
+            }
+        );
+
+        let color = metal.color(normal);
+        assert_eq!(color, Color{r: 1.0, g: 1.0, b: 1.0});
+    }
+
+    #[test]
+    fn scatter_lambertian() {
+        let lambertian = Material::Lambertian{color: Color{r: 1.0, g: 1.0, b: 1.0}};
+
+        let incoming = Vec3{x: 0.0, y: 0.0, z: -1.0};
+        let normal = Vec3{x: 0.0, y: 0.0, z: 1.0};
+
+        let scatter = lambertian.scatter(incoming, normal, true);
+        assert!(scatter.is_some());
+
+        let e = 1e-3;
+        assert!((scatter.expect("Lambertian reflection should produce scatter!") - normal).length_squared() - 1.0 < e);
+
+        let color = lambertian.color(normal);
+        assert_eq!(color, Color{r: 1.0, g: 1.0, b: 1.0});
+    }
+
+    #[test]
+    fn scatter_dielectric() {
+        let dielectric = Material::Dielectric{color: Color{r: 1.0, g: 1.0, b: 1.0}, eta: 1.5};
+
+        let incoming = Vec3{x: 0.0, y: 0.0, z: -1.0};
+        let normal = Vec3{x: 0.0, y: 0.0, z: 1.0};
+
+        let scatter = dielectric.scatter(incoming, normal, true);
+        // TODO: test it's actually refracted properly
+        assert!(scatter.is_some());
+
+        let color = dielectric.color(normal);
+        assert_eq!(color, Color{r: 1.0, g: 1.0, b: 1.0});
     }
 }
