@@ -18,8 +18,10 @@ pub struct Hit {
 
 pub trait Wobject {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
+    fn bb(&self) -> AABB;
 }
 
+#[derive(Debug)]
 pub struct AABB {
     pub min: Point,
     pub max: Point,
@@ -44,6 +46,24 @@ impl AABB {
             }
         }
         true
+    }
+
+    fn from_wobjects(wobjects: Vec<impl Wobject>) -> Self {
+        let mut min = Point{x: f32::INFINITY, y: f32::INFINITY, z: f32::INFINITY};
+        let mut max = Point{x: -f32::INFINITY, y: -f32::INFINITY, z: -f32::INFINITY};
+
+        for wobject in wobjects {
+            let bb = wobject.bb();
+            min.x = min.x.min(bb.min.x);
+            min.y = min.y.min(bb.min.y);
+            min.z = min.z.min(bb.min.z);
+
+            max.x = max.x.max(bb.max.x);
+            max.y = max.y.max(bb.max.y);
+            max.z = max.z.max(bb.max.z);
+        }
+
+        AABB{min, max}
     }
 }
 
@@ -92,11 +112,95 @@ impl Wobject for Sphere {
         }
         None
     }
+
+    fn bb(&self) -> AABB {
+        AABB {
+            min: Point{x: self.center.x - self.radius, y: self.center.y - self.radius, z: self.center.z - self.radius},
+            max: Point{x: self.center.x + self.radius, y: self.center.y + self.radius, z: self.center.z + self.radius},
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn aabb_from_sphere() {
+        let sphere = Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            radius: 1.0,
+            material: Material::NormalView,
+        };
+
+        let bb = sphere.bb();
+
+        assert!(
+            bb.min == Point{x: -1.0, y: -1.0, z: -3.0} && bb.max == Point{x: 1.0, y: 1.0, z: -1.0}
+        );
+    }
+
+    #[test]
+    fn aabb_from_sphere_list() {
+        let spheres = vec!(
+            Sphere {
+                center: Point{x: 0.0, y: 0.0, z: -2.0},
+                radius: 1.0,
+                material: Material::NormalView,
+            },
+            Sphere {
+                center: Point{x: 0.0, y: 1.0, z: -2.0},
+                radius: 1.0,
+                material: Material::NormalView,
+            },
+        );
+
+        let bb = AABB::from_wobjects(spheres);
+
+        assert!(
+            bb.min == Point{x: -1.0, y: -1.0, z: -3.0} && bb.max == Point{x: 1.0, y: 2.0, z: -1.0}
+        );
+    }
+
+    #[test]
+    fn hit_aabb() {
+        let sphere = Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            radius: 1.0,
+            material: Material::NormalView,
+        };
+
+        let bb = sphere.bb();
+
+        let ray = Ray{
+            origin: Point{x: 0.0, y: 0.0, z: 0.0},
+            direction: Vec3{x: 0.0, y: 0.0, z: -1.0},
+            depth: 0,
+            color: Color{r: 1.0, g: 1.0, b: 1.0},
+        };
+
+        assert!(bb.hit(&ray, 0.0, f32::INFINITY));
+    }
+
+    #[test]
+    fn miss_aabb() {
+        let sphere = Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            radius: 1.0,
+            material: Material::NormalView,
+        };
+
+        let bb = sphere.bb();
+
+        let ray = Ray{
+            origin: Point{x: 0.0, y: 0.0, z: 0.0},
+            direction: Vec3{x: 0.0, y: 0.0, z: 1.0},
+            depth: 0,
+            color: Color{r: 1.0, g: 1.0, b: 1.0},
+        };
+
+        assert!(!bb.hit(&ray, 0.0, f32::INFINITY));
+    }
 
     #[test]
     fn hit_sphere() {
