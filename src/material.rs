@@ -125,11 +125,18 @@ mod tests {
         let metal = Material::Metal{color: Color{r: 1.0, g: 1.0, b: 1.0}, fuzz: 0.0};
 
         let incoming = Vec3{x: 0.0, y: 0.0, z: -1.0};
-        let normal = Vec3{x: 0.0, y: 0.0, z: 1.0};
+        let normal = Vec3{x: 0.577, y: 0.577, z: 0.577};
 
         let scatter = metal.scatter(incoming, normal, true);
-        // TODO: test it's actually reflected properly
         assert!(scatter.is_some());
+        assert!(
+            scatter.expect("Metal reflection should produce scatter!") ==
+            Vec3 {
+                x: 0.66585803,
+                y: 0.66585803,
+                z: -0.33414197,
+            }
+        );
 
         let color = metal.color(normal);
         assert_eq!(color, Color{r: 1.0, g: 1.0, b: 1.0});
@@ -143,8 +150,10 @@ mod tests {
         let normal = Vec3{x: 0.0, y: 0.0, z: 1.0};
 
         let scatter = lambertian.scatter(incoming, normal, true);
-        // TODO: test it's actually reflected properly
         assert!(scatter.is_some());
+
+        let e = 1e-3;
+        assert!((scatter.expect("Lambertian reflection should produce scatter!") - normal).length_squared() - 1.0 < e);
 
         let color = lambertian.color(normal);
         assert_eq!(color, Color{r: 1.0, g: 1.0, b: 1.0});
