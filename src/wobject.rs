@@ -18,16 +18,16 @@ pub struct Hit {
 
 pub trait Wobject {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
-    fn bb(&self) -> AABB;
+    fn bb(&self) -> AxisAlignedBoundingBox;
 }
 
 #[derive(Debug)]
-pub struct AABB {
+pub struct AxisAlignedBoundingBox {
     pub min: Point,
     pub max: Point,
 }
 
-impl AABB {
+impl AxisAlignedBoundingBox {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> bool {
         for (d, o, min, max) in izip!(ray.direction.into_iter(), ray.origin.into_iter(), self.min.into_iter(), self.max.into_iter())
         {
@@ -35,9 +35,7 @@ impl AABB {
             let mut t0 = inv * (min - o);
             let mut t1 = inv * (max - o);
             if inv < 0.0 {
-                let tmp = t0;
-                t0 = t1;
-                t1 = tmp;
+                std::mem::swap(&mut t0, &mut t1);
             }
             let t_min = t0.max(t_min);
             let t_max = t1.min(t_max);
@@ -63,7 +61,7 @@ impl AABB {
             max.z = max.z.max(bb.max.z);
         }
 
-        AABB{min, max}
+        AxisAlignedBoundingBox{min, max}
     }
 }
 
@@ -108,13 +106,13 @@ impl Wobject for Sphere {
                 |d| Ray{origin: p, direction: d, depth, color: ray.color * color}
             );
 
-            return Some(Hit{p, normal, t, front_face, scatter, color});
+            return Some(Hit{p, t, normal, front_face, scatter, color});
         }
         None
     }
 
-    fn bb(&self) -> AABB {
-        AABB {
+    fn bb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox {
             min: Point{x: self.center.x - self.radius, y: self.center.y - self.radius, z: self.center.z - self.radius},
             max: Point{x: self.center.x + self.radius, y: self.center.y + self.radius, z: self.center.z + self.radius},
         }
@@ -155,7 +153,7 @@ mod tests {
             },
         );
 
-        let bb = AABB::from_wobjects(spheres);
+        let bb = AxisAlignedBoundingBox::from_wobjects(spheres);
 
         assert!(
             bb.min == Point{x: -1.0, y: -1.0, z: -3.0} && bb.max == Point{x: 1.0, y: 2.0, z: -1.0}
