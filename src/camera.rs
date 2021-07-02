@@ -1,7 +1,5 @@
 use rand::prelude::*;
 
-use std::collections::VecDeque;
-
 use crate::ray::{Color, Ray, blend};
 use crate::vec3::{Vec3, Point};
 use crate::wobject::Wobject;
@@ -67,7 +65,7 @@ impl Camera {
         let mut colors = Vec::with_capacity(self.anti_aliasing as usize);
 
         while !rays.is_empty() {
-            if let Some(ray) = rays.pop_front() {
+            if let Some(ray) = rays.pop() {
                 if ray.depth > self.max_bounces {
                     colors.push(Color{r: 0.0, g: 0.0, b: 0.0});
                     continue;
@@ -86,7 +84,7 @@ impl Camera {
 
                 if let Some(new_ray) = scatter {
                     // hit and scattered
-                    rays.push_back(new_ray);
+                    rays.push(new_ray);
                 } else {
                     // absorbed or hit background
                     colors.push(ray.color * color);
@@ -117,15 +115,15 @@ impl Camera {
         }
     }
 
-    pub fn get_aa_rays(&self, i: f32, j: f32) -> VecDeque<Ray> {
-        let mut rays: VecDeque<Ray> = VecDeque::new();
+    pub fn get_aa_rays(&self, i: f32, j: f32) -> Vec<Ray> {
+        let mut rays: Vec<Ray> = Vec::new();
 
         if self.anti_aliasing == 1 {
-            rays.push_back(self.get_ray(i, j))
+            rays.push(self.get_ray(i, j))
         } else {
             let mut rng = rand::thread_rng();
             for _ in 0..self.anti_aliasing {
-                rays.push_back(
+                rays.push(
                     self.get_ray(
                         i + rng.gen::<f32>(),
                         j + rng.gen::<f32>(),
