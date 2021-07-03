@@ -1,6 +1,7 @@
 use rand::prelude::*;
 use rayon::prelude::*;
 
+mod aabb;
 mod camera;
 mod im;
 pub mod material;
