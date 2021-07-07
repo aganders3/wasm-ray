@@ -4,7 +4,7 @@ use std::collections::VecDeque;
 
 use crate::ray::{Color, Ray, blend};
 use crate::vec3::{Vec3, Point};
-use crate::wobject::Wobject;
+use crate::wobject::{Wobject, Elemental};
 
 pub struct Camera {
     image_height: usize,
@@ -62,7 +62,7 @@ impl Camera {
         }
     }
 
-    pub fn get_color(&self, world: &[Box<dyn Wobject + Send + Sync>], i: usize, j: usize) -> Color {
+    pub fn get_color(&self, world: &[Elemental], i: usize, j: usize) -> Color {
         let mut rays = self.get_aa_rays(i as f32, j as f32);
         let mut colors = Vec::with_capacity(self.anti_aliasing as usize);
 

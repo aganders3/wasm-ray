@@ -26,6 +26,24 @@ pub struct Sphere {
     pub material: Material,
 }
 
+pub enum Elemental {
+    Sphere(Sphere),
+}
+
+impl Wobject for Elemental {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
+        match self {
+            Self::Sphere(sphere) => sphere.hit(ray, t_min, t_max),
+        }
+    }
+
+    fn bb(&self) -> AxisAlignedBoundingBox {
+        match self {
+            Self::Sphere(sphere) => sphere.bb(),
+        }
+    }
+}
+
 impl Wobject for Sphere {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         let oc = ray.origin - self.center;
