@@ -1,35 +1,38 @@
 use crate::aabb::AxisAlignedBoundingBox;
 use crate::material::Material;
 use crate::ray::{Ray, Color};
-use crate::vec3::{Point, Vec3};
+use crate::vec3::Point;
 
-// TODO: restructure to fit AABB as well, where we don't want to calculate a normal or color
-// might just be able to make everything except p and t optional?
-// or move them to some nested struct...
-pub struct Hit {
-    pub p: Point,
-    pub t: f32,
-    pub normal: Vec3,
-    pub front_face: bool,
+// TODO: restructure hit to have an optional Interaction
+// to fit AABB as well, where we don't want to calculate scatter or color
+pub struct Interaction {
     pub scatter: Option<Ray>,
     pub color: Color,
 }
 
+/// A `Hit` struct provides information about a Ray-Wobject intersection
+pub struct Hit {
+    pub p: Point,
+    pub t: f32,
+    // pub interaction: Option<Interaction>,
+    pub scatter: Option<Ray>,
+    pub color: Color,
+}
+
+/// A `Wobject` is a World-object, anything that can be hit by and interact with a ray
 pub trait Wobject {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
+
+    // TODO: this might be more useful in a separate trait
     fn bb(&self) -> AxisAlignedBoundingBox;
 }
 
-pub struct Sphere {
-    pub center: Point,
-    pub radius: f32,
-    pub material: Material,
-}
-
+/// This enum contains all basic/irreducible Wobjects
 pub enum Elemental {
     Sphere(Sphere),
 }
 
+/// Generally these methods will dispatch to the individual Wobject structs
 impl Wobject for Elemental {
     fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
         match self {
@@ -42,6 +45,12 @@ impl Wobject for Elemental {
             Self::Sphere(sphere) => sphere.bb(),
         }
     }
+}
+
+pub struct Sphere {
+    pub center: Point,
+    pub radius: f32,
+    pub material: Material,
 }
 
 impl Wobject for Sphere {
@@ -79,7 +88,7 @@ impl Wobject for Sphere {
                 |d| Ray{origin: p, direction: d, depth, color: ray.color * color}
             );
 
-            return Some(Hit{p, t, normal, front_face, scatter, color});
+            return Some(Hit{p, t, scatter, color});
         }
         None
     }
@@ -95,6 +104,7 @@ impl Wobject for Sphere {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::vec3::Vec3;
 
     #[test]
     fn aabb_from_sphere() {
