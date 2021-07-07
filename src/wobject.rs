@@ -28,6 +28,7 @@ pub trait Wobject {
 }
 
 /// This enum contains all basic/irreducible Wobjects
+#[derive(Debug,Clone)]
 pub enum Elemental {
     Sphere(Sphere),
 }
@@ -47,6 +48,7 @@ impl Wobject for Elemental {
     }
 }
 
+#[derive(Debug,Clone)]
 pub struct Sphere {
     pub center: Point,
     pub radius: f32,
@@ -85,7 +87,8 @@ impl Wobject for Sphere {
             let depth = ray.depth + 1;
 
             let scatter = direction.map(
-                |d| Ray{origin: p, direction: d, depth, color: ray.color * color}
+                // 0.001 * d offset is to reduce shadow acne
+                |d| Ray{origin: p + 0.001 * d, direction: d, depth, color: ray.color * color}
             );
 
             return Some(Hit{p, t, scatter, color});

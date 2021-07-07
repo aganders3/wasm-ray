@@ -2,7 +2,7 @@ use itertools::izip;
 
 use crate::ray::Ray;
 use crate::vec3::Point;
-use crate::wobject::Wobject;
+use crate::wobject::{Elemental, Wobject};
 
 #[derive(Debug)]
 pub struct AxisAlignedBoundingBox {
@@ -29,7 +29,7 @@ impl AxisAlignedBoundingBox {
         true
     }
 
-    fn from_wobjects(wobjects: &[Box<dyn Wobject>]) -> Self {
+    fn from_wobjects(wobjects: &[Elemental]) -> Self {
         let mut min = Point{x: f32::INFINITY, y: f32::INFINITY, z: f32::INFINITY};
         let mut max = Point{x: -f32::INFINITY, y: -f32::INFINITY, z: -f32::INFINITY};
 
@@ -53,11 +53,11 @@ pub struct BVHNode {
     bb: AxisAlignedBoundingBox,
     left: Option<Box<BVHNode>>,
     right: Option<Box<BVHNode>>,
-    // wobject: Option<Box<dyn Wobject>>,
-    wobject: Option<i32>,
+    wobject: Option<Elemental>,
+    // wobject: Option<i32>,
 }
 
-pub fn bvh_tree_from(wobjects: &[Box<dyn Wobject>]) -> BVHNode {
+pub fn bvh_tree_from(wobjects: &[Elemental])-> BVHNode {
     let n = wobjects.len();
     let mut left = None;
     let mut right = None;
@@ -66,8 +66,8 @@ pub fn bvh_tree_from(wobjects: &[Box<dyn Wobject>]) -> BVHNode {
         left = Some(Box::new(bvh_tree_from(&wobjects[0..n/2])));
         right = Some(Box::new(bvh_tree_from(&wobjects[n/2..n])));
     } else {
-        wobject = Some(100);
-        // wobject = Some(wobjects[0]);
+        // wobject = Some(100);
+        wobject = Some(wobjects[0].clone());
     }
 
     BVHNode {
@@ -90,19 +90,23 @@ mod tests {
     #[test]
     fn aabb_from_list() {
         let spheres = vec!(
-            Box::new(Sphere {
-                center: Point{x: 0.0, y: 0.0, z: -2.0},
-                radius: 1.0,
-                material: Material::NormalView,
-            }) as Box<dyn Wobject>,
-            Box::new(Sphere {
-                center: Point{x: 0.0, y: 1.0, z: -2.0},
-                radius: 1.0,
-                material: Material::NormalView,
-            }) as Box<dyn Wobject>,
+            Elemental::Sphere(
+                Sphere {
+                    center: Point{x: 0.0, y: 0.0, z: -2.0},
+                    radius: 1.0,
+                    material: Material::NormalView,
+                }
+            ),
+            Elemental::Sphere(
+                Sphere {
+                    center: Point{x: 0.0, y: 1.0, z: -2.0},
+                    radius: 1.0,
+                    material: Material::NormalView,
+                }
+            ),
         );
 
-        let bb = AxisAlignedBoundingBox::from_wobjects(&spheres[0..spheres.len()]);
+        let bb = AxisAlignedBoundingBox::from_wobjects(&spheres[..]);
 
         assert!(
             bb.min == Point{x: -1.0, y: -1.0, z: -3.0} && bb.max == Point{x: 1.0, y: 2.0, z: -1.0}
@@ -152,21 +156,27 @@ mod tests {
     #[test]
     fn bvh_from_list() {
         let spheres = vec!(
-            Box::new(Sphere {
-                center: Point{x: 0.0, y: 0.0, z: -2.0},
-                radius: 1.0,
-                material: Material::NormalView,
-            }) as Box<dyn Wobject>,
-            Box::new(Sphere {
-                center: Point{x: 0.0, y: 1.0, z: -2.0},
-                radius: 1.0,
-                material: Material::NormalView,
-            }) as Box<dyn Wobject>,
-            Box::new(Sphere {
-                center: Point{x: 0.0, y: 1.0, z: -2.0},
-                radius: 1.0,
-                material: Material::NormalView,
-            }) as Box<dyn Wobject>,
+            Elemental::Sphere(
+                Sphere {
+                    center: Point{x: 0.0, y: 0.0, z: -2.0},
+                    radius: 1.0,
+                    material: Material::NormalView,
+                }
+            ),
+            Elemental::Sphere(
+                Sphere {
+                    center: Point{x: 0.0, y: 1.0, z: -2.0},
+                    radius: 1.0,
+                    material: Material::NormalView,
+                }
+            ),
+            Elemental::Sphere(
+                Sphere {
+                    center: Point{x: 0.0, y: 1.0, z: -2.0},
+                    radius: 1.0,
+                    material: Material::NormalView,
+                }
+            ),
         );
         let n = bvh_tree_from(&spheres);
         println!("{:?}", n);
