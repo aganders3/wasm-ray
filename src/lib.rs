@@ -77,14 +77,17 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
     // let world = scene_10();
     // let world = scene_14();
     // let world = scene_18();
-    let world = cover_scene();
+    println!("Creating world...");
+    let world = aabb::bvh_tree_from(&mut cover_scene()[..]).unwrap();
+    // let world = aabb::bvh_tree_from(&mut scene_10()[..]).unwrap();
 
     // render
+    println!("Rendering...");
     image.image.par_chunks_mut(3 * image_width).enumerate().for_each(
         |(j, row)| {
             // println!("Tracing row {}...", j);
             for i in 0..image_width {
-                let color = cam.get_color(&world[..], i, j);
+                let color = cam.get_color_fast(&world, i, j);
                 row[3*i + 0] = (color.r.sqrt() * 256.) as u8;
                 row[3*i + 1] = (color.g.sqrt() * 256.) as u8;
                 row[3*i + 2] = (color.b.sqrt() * 256.) as u8;
@@ -327,7 +330,7 @@ fn cover_scene() -> Vec<wobject::Elemental> {
                 color: Color{r: 0.5, g: 0.5, b: 0.5},
             },
         }),
-
+        // back - matte
         wobject::Elemental::Sphere (
             wobject::Sphere {
             center: Point{x: -4.0, y: 1.0, z: 0.0},
@@ -336,7 +339,7 @@ fn cover_scene() -> Vec<wobject::Elemental> {
                 color: Color{r: 0.4, g: 0.2, b: 0.1},
             },
         }),
-
+        // middle - glass
         wobject::Elemental::Sphere (
             wobject::Sphere {
             center: Point{x: 0.0, y: 1.0, z: 0.0},
@@ -346,7 +349,7 @@ fn cover_scene() -> Vec<wobject::Elemental> {
                 eta: 1.5,
             },
         }),
-
+        // front - mirror
         wobject::Elemental::Sphere (
             wobject::Sphere {
             center: Point{x: 4.0, y: 1.0, z: 0.0},
@@ -364,12 +367,18 @@ fn cover_scene() -> Vec<wobject::Elemental> {
             let material = rng.gen::<f32>();
 
             let center = Point{
-                x: a as f32 + 0.9*rng.gen::<f32>(),
+                x: a as f32 + 0.8*rng.gen::<f32>(),
                 y: 0.2,
-                z: b  as f32 + 0.9*rng.gen::<f32>(),
+                z: b  as f32 + 0.8*rng.gen::<f32>(),
             };
 
             if (center - Point{x: 4.0, y: 0.2, z: 0.0}).length() <= 0.9 {
+                continue;
+            }
+            if (center - Point{x: -4.0, y: 0.2, z: 0.0}).length() <= 0.9 {
+                continue;
+            }
+            if (center - Point{x: 0.0, y: 0.2, z: 0.0}).length() <= 0.9 {
                 continue;
             }
 

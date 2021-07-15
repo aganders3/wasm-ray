@@ -2,6 +2,7 @@ use rand::prelude::*;
 
 use std::collections::VecDeque;
 
+use crate::aabb::BVHNode;
 use crate::ray::{Color, Ray, blend};
 use crate::vec3::{Vec3, Point};
 use crate::wobject::{Wobject, Elemental};
@@ -83,6 +84,46 @@ impl Camera {
                         scatter = hit.scatter;
                     }
                 }
+
+                if let Some(new_ray) = scatter {
+                    // hit and scattered
+                    rays.push_back(new_ray);
+                } else {
+                    // absorbed or hit background
+                    colors.push(ray.color * color);
+                }
+            }
+        }
+        blend(colors)
+    }
+
+    pub fn get_color_fast(&self, world: &BVHNode, i: usize, j: usize) -> Color {
+        let mut rays = self.get_aa_rays(i as f32, j as f32);
+        let mut colors = Vec::with_capacity(self.anti_aliasing as usize);
+
+        while !rays.is_empty() {
+            if let Some(ray) = rays.pop_front() {
+                if ray.depth > self.max_bounces {
+                    colors.push(Color{r: 0.0, g: 0.0, b: 0.0});
+                    continue;
+                }
+
+                let mut color = ray.background_color();
+                let mut scatter: Option<Ray> = None;
+
+                if let Some(hit) = world.closest_hit(&ray, 0) {
+                    color = hit.color;
+                    scatter = hit.scatter;
+                }
+                /*
+                for item in world.dfs() {
+                    if let Some(hit) = item.hit(&ray, 0.001, closest_so_far) {
+                        closest_so_far = hit.t;
+                        color = hit.color;
+                        scatter = hit.scatter;
+                    }
+                }
+                */
 
                 if let Some(new_ray) = scatter {
                     // hit and scattered

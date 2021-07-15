@@ -2,7 +2,7 @@ use itertools::izip;
 
 use crate::ray::Ray;
 use crate::vec3::Point;
-use crate::wobject::{Elemental, Wobject};
+use crate::wobject::{Elemental, Hit, Wobject, sort_on_random_axis};
 
 #[derive(Debug)]
 pub struct AxisAlignedBoundingBox {
@@ -51,31 +51,79 @@ impl AxisAlignedBoundingBox {
 #[derive(Debug)]
 pub struct BVHNode {
     bb: AxisAlignedBoundingBox,
-    left: Option<Box<BVHNode>>,
-    right: Option<Box<BVHNode>>,
+    //left: Option<Box<BVHNode>>,
+    //right: Option<Box<BVHNode>>,
+    left: Box<Option<BVHNode>>,
+    right: Box<Option<BVHNode>>,
     wobject: Option<Elemental>,
     // wobject: Option<i32>,
 }
 
-pub fn bvh_tree_from(wobjects: &[Elemental])-> BVHNode {
+pub fn closer(hit1: Option<Hit>, hit2: Option<Hit>) -> Option<Hit> {
+    if let Some(h1) = hit1 {
+        if let Some(h2) = hit2 {
+            if h1.t < h2.t {
+                return hit1
+            } else {
+                return hit2
+            }
+        }
+        return hit1
+    }
+    return hit2
+}
+
+impl BVHNode {
+    pub fn closest_hit(&self, ray: &Ray, depth: u32) -> Option<Hit> {
+        // println!("{}", depth);
+        if !self.bb.hit(ray, 0.001, f32::INFINITY) {
+            return None
+        }
+
+        if let Some(wobject) = self.wobject {
+            return wobject.hit(ray, 0.001, f32::INFINITY)
+        }
+
+        let left_hit = match &*self.left {
+            Some(node) => node.closest_hit(ray, depth+1),
+            None => None
+        };
+
+        let right_hit = match &*self.right {
+            Some(node) => node.closest_hit(ray, depth+1),
+            None => None
+        };
+
+        return closer(left_hit, right_hit)
+    }
+}
+
+pub fn bvh_tree_from(wobjects: &mut [Elemental])-> Option<BVHNode> {
     let n = wobjects.len();
     let mut left = None;
     let mut right = None;
     let mut wobject = None;
     if n > 1 {
-        left = Some(Box::new(bvh_tree_from(&wobjects[0..n/2])));
-        right = Some(Box::new(bvh_tree_from(&wobjects[n/2..n])));
-    } else {
+        // TODO: sort along a random axis before dividing in half
+        // wobjects.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        sort_on_random_axis(wobjects);
+        left = bvh_tree_from(&mut wobjects[0..n/2]);
+        right = bvh_tree_from(&mut wobjects[n/2..n]);
+    } else if n == 1 {
         // wobject = Some(100);
-        wobject = Some(wobjects[0].clone());
+        wobject = Some(wobjects[0]);
+    } else {
+        return None
     }
 
-    BVHNode {
-        bb: AxisAlignedBoundingBox::from_wobjects(wobjects),
-        left,
-        right,
+    let bb = AxisAlignedBoundingBox::from_wobjects(wobjects);
+    println!("{:?}", bb);
+    Some(BVHNode {
+        bb,
+        left: Box::new(left),
+        right: Box::new(right),
         wobject,
-    }
+    })
 }
 
 

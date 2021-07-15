@@ -1,3 +1,5 @@
+use rand::prelude::*;
+
 use crate::aabb::AxisAlignedBoundingBox;
 use crate::material::Material;
 use crate::ray::{Ray, Color};
@@ -11,6 +13,7 @@ pub struct Interaction {
 }
 
 /// A `Hit` struct provides information about a Ray-Wobject intersection
+#[derive(Clone, Copy, Debug)]
 pub struct Hit {
     pub p: Point,
     pub t: f32,
@@ -28,9 +31,29 @@ pub trait Wobject {
 }
 
 /// This enum contains all basic/irreducible Wobjects
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Copy)]
 pub enum Elemental {
     Sphere(Sphere),
+}
+
+impl Elemental {
+    fn center(&self) -> Point {
+        match self {
+            Self::Sphere(sphere) => sphere.center
+        }
+    }
+}
+
+pub fn sort_on_random_axis(wobjects: &mut [Elemental]) {
+    let mut rng = rand::thread_rng();
+    let axis = rng.gen::<f32>();
+    if axis < 0.333 {
+        wobjects.sort_by(|a, b| a.center().x.partial_cmp(&b.center().x).unwrap());
+    } else if axis < 0.666 {
+        wobjects.sort_by(|a, b| a.center().y.partial_cmp(&b.center().y).unwrap());
+    } else {
+        wobjects.sort_by(|a, b| a.center().z.partial_cmp(&b.center().z).unwrap());
+    }
 }
 
 /// Generally these methods will dispatch to the individual Wobject structs
@@ -48,7 +71,7 @@ impl Wobject for Elemental {
     }
 }
 
-#[derive(Debug,Clone)]
+#[derive(Debug,Clone,Copy)]
 pub struct Sphere {
     pub center: Point,
     pub radius: f32,
