@@ -104,14 +104,13 @@ impl Wobject for Sphere {
             let front_face = ray.direction.dot(&outward_normal) < 0.0;
             let normal = if front_face { outward_normal } else { -outward_normal };
 
+            let color = self.material.color(normal);
+
             // scattered ray
             let direction = self.material.scatter(ray.direction, normal, front_face);
-            let color = self.material.color(normal);
-            let depth = ray.depth + 1;
 
             let scatter = direction.map(
-                // 0.001 * d offset is to reduce shadow acne
-                |d| Ray{origin: p + 0.001 * d, direction: d, depth, color: ray.color * color}
+                |d| Ray{origin: p, direction: d, depth: ray.depth + 1, color: ray.color * color}
             );
 
             return Some(Hit{p, t, scatter, color});
