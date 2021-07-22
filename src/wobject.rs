@@ -1,20 +1,77 @@
+use rand::prelude::*;
+
+use crate::aabb::AxisAlignedBoundingBox;
 use crate::material::Material;
 use crate::ray::{Ray, Color};
-use crate::vec3::{Vec3, Point};
+use crate::vec3::Point;
 
-pub struct Hit {
-    pub p: Point,
-    pub normal: Vec3,
-    pub t: f32,
-    pub front_face: bool,
+// TODO: restructure hit to have an optional Interaction
+// to fit AABB as well, where we don't want to calculate scatter or color
+pub struct Interaction {
     pub scatter: Option<Ray>,
     pub color: Color,
 }
 
-pub trait Wobject {
-    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
+/// A `Hit` struct provides information about a Ray-Wobject intersection
+#[derive(Clone, Copy, Debug)]
+pub struct Hit {
+    pub p: Point,
+    pub t: f32,
+    // pub interaction: Option<Interaction>,
+    pub scatter: Option<Ray>,
+    pub color: Color,
 }
 
+/// A `Wobject` is a World-object, anything that can be hit by and interact with a ray
+pub trait Wobject {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit>;
+
+    // TODO: this might be more useful in a separate trait
+    fn bb(&self) -> AxisAlignedBoundingBox;
+}
+
+/// This enum contains all basic/irreducible Wobjects
+#[derive(Debug,Clone,Copy)]
+pub enum Elemental {
+    Sphere(Sphere),
+}
+
+impl Elemental {
+    fn center(&self) -> Point {
+        match self {
+            Self::Sphere(sphere) => sphere.center
+        }
+    }
+}
+
+pub fn sort_on_random_axis(wobjects: &mut [Elemental]) {
+    let mut rng = rand::thread_rng();
+    let axis = rng.gen::<f32>();
+    if axis < 0.333 {
+        wobjects.sort_by(|a, b| a.center().x.partial_cmp(&b.center().x).unwrap());
+    } else if axis < 0.666 {
+        wobjects.sort_by(|a, b| a.center().y.partial_cmp(&b.center().y).unwrap());
+    } else {
+        wobjects.sort_by(|a, b| a.center().z.partial_cmp(&b.center().z).unwrap());
+    }
+}
+
+/// Generally these methods will dispatch to the individual Wobject structs
+impl Wobject for Elemental {
+    fn hit(&self, ray: &Ray, t_min: f32, t_max: f32) -> Option<Hit> {
+        match self {
+            Self::Sphere(sphere) => sphere.hit(ray, t_min, t_max),
+        }
+    }
+
+    fn bb(&self) -> AxisAlignedBoundingBox {
+        match self {
+            Self::Sphere(sphere) => sphere.bb(),
+        }
+    }
+}
+
+#[derive(Debug,Clone,Copy)]
 pub struct Sphere {
     pub center: Point,
     pub radius: f32,
@@ -56,15 +113,38 @@ impl Wobject for Sphere {
                 |d| Ray{origin: p, direction: d, depth: ray.depth + 1, color: ray.color * color}
             );
 
-            return Some(Hit{p, normal, t, front_face, scatter, color});
+            return Some(Hit{p, t, scatter, color});
         }
         None
+    }
+
+    fn bb(&self) -> AxisAlignedBoundingBox {
+        AxisAlignedBoundingBox {
+            min: Point{x: self.center.x - self.radius, y: self.center.y - self.radius, z: self.center.z - self.radius},
+            max: Point{x: self.center.x + self.radius, y: self.center.y + self.radius, z: self.center.z + self.radius},
+        }
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::vec3::Vec3;
+
+    #[test]
+    fn aabb_from_sphere() {
+        let sphere = Sphere {
+            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            radius: 1.0,
+            material: Material::NormalView,
+        };
+
+        let bb = sphere.bb();
+
+        assert!(
+            bb.min == Point{x: -1.0, y: -1.0, z: -3.0} && bb.max == Point{x: 1.0, y: 1.0, z: -1.0}
+        );
+    }
 
     #[test]
     fn hit_sphere() {

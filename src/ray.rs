@@ -84,6 +84,7 @@ pub fn blend(colors: Vec<Color>) -> Color {
     }
 }
 
+#[derive(Clone, Copy, Debug)]
 pub struct Ray {
     pub origin: Point,
     pub direction: Vec3,

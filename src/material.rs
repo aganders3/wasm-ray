@@ -3,6 +3,7 @@ use rand::prelude::*;
 use crate::ray::Color;
 use crate::vec3::Vec3;
 
+#[derive(Debug,Clone,Copy)]
 pub enum Material {
     NormalView,
     VantaBlack,
