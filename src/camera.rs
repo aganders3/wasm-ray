@@ -111,19 +111,10 @@ impl Camera {
                 let mut color = ray.background_color();
                 let mut scatter: Option<Ray> = None;
 
-                if let Some(hit) = world.closest_hit(&ray, 0) {
+                if let Some(hit) = world.closest_hit(&ray, 0, f32::INFINITY) {
                     color = hit.color;
                     scatter = hit.scatter;
                 }
-                /*
-                for item in world.dfs() {
-                    if let Some(hit) = item.hit(&ray, 0.001, closest_so_far) {
-                        closest_so_far = hit.t;
-                        color = hit.color;
-                        scatter = hit.scatter;
-                    }
-                }
-                */
 
                 if let Some(new_ray) = scatter {
                     // hit and scattered

@@ -209,4 +209,11 @@ mod tests {
         // assert!(v1.x == 2.0 && v1.y == 3.0 && v1.z == 4.0);
         assert_eq!(v1, Vec3{x: 2.0, y: 3.0, z: 4.0});
     }
+
+    #[test]
+    fn mul_const() {
+        let v0 = Vec3{x: 1.0, y: 2.0, z: 3.0};
+        let v1 = 2.0 * v0;
+        assert_eq!(v1, Vec3{x: 2.0, y: 4.0, z: 6.0});
+    }
 }

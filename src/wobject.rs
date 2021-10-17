@@ -2,7 +2,7 @@ use rand::prelude::*;
 
 use crate::aabb::AxisAlignedBoundingBox;
 use crate::material::Material;
-use crate::ray::{Ray, Color};
+use crate::ray::{Color, Ray};
 use crate::vec3::Point;
 
 // TODO: restructure hit to have an optional Interaction
@@ -13,7 +13,7 @@ pub struct Interaction {
 }
 
 /// A `Hit` struct provides information about a Ray-Wobject intersection
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct Hit {
     pub p: Point,
     pub t: f32,
@@ -31,7 +31,7 @@ pub trait Wobject {
 }
 
 /// This enum contains all basic/irreducible Wobjects
-#[derive(Debug,Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub enum Elemental {
     Sphere(Sphere),
 }
@@ -39,7 +39,7 @@ pub enum Elemental {
 impl Elemental {
     fn center(&self) -> Point {
         match self {
-            Self::Sphere(sphere) => sphere.center
+            Self::Sphere(sphere) => sphere.center,
         }
     }
 }
@@ -71,7 +71,7 @@ impl Wobject for Elemental {
     }
 }
 
-#[derive(Debug,Clone,Copy)]
+#[derive(Debug, Clone, Copy)]
 pub struct Sphere {
     pub center: Point,
     pub radius: f32,
@@ -102,7 +102,11 @@ impl Wobject for Sphere {
             let p = ray.at(t);
             let outward_normal = (self.radius * (p - self.center)).unit();
             let front_face = ray.direction.dot(&outward_normal) < 0.0;
-            let normal = if front_face { outward_normal } else { -outward_normal };
+            let normal = if front_face {
+                outward_normal
+            } else {
+                -outward_normal
+            };
 
             // scattered ray
             let direction = self.material.scatter(ray.direction, normal, front_face);
@@ -111,18 +115,36 @@ impl Wobject for Sphere {
 
             let scatter = direction.map(
                 // 0.001 * d offset is to reduce shadow acne
-                |d| Ray{origin: p + 0.001 * d, direction: d, depth, color: ray.color * color}
+                |d| Ray {
+                    origin: p + 0.001 * d,
+                    direction: d,
+                    depth,
+                    color: ray.color * color,
+                },
             );
 
-            return Some(Hit{p, t, scatter, color});
+            return Some(Hit {
+                p,
+                t,
+                scatter,
+                color,
+            });
         }
         None
     }
 
     fn bb(&self) -> AxisAlignedBoundingBox {
         AxisAlignedBoundingBox {
-            min: Point{x: self.center.x - self.radius, y: self.center.y - self.radius, z: self.center.z - self.radius},
-            max: Point{x: self.center.x + self.radius, y: self.center.y + self.radius, z: self.center.z + self.radius},
+            min: Point {
+                x: self.center.x - self.radius,
+                y: self.center.y - self.radius,
+                z: self.center.z - self.radius,
+            },
+            max: Point {
+                x: self.center.x + self.radius,
+                y: self.center.y + self.radius,
+                z: self.center.z + self.radius,
+            },
         }
     }
 }
@@ -135,7 +157,11 @@ mod tests {
     #[test]
     fn aabb_from_sphere() {
         let sphere = Sphere {
-            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            center: Point {
+                x: 0.0,
+                y: 0.0,
+                z: -2.0,
+            },
             radius: 1.0,
             material: Material::NormalView,
         };
@@ -143,23 +169,50 @@ mod tests {
         let bb = sphere.bb();
 
         assert!(
-            bb.min == Point{x: -1.0, y: -1.0, z: -3.0} && bb.max == Point{x: 1.0, y: 1.0, z: -1.0}
+            bb.min
+                == Point {
+                    x: -1.0,
+                    y: -1.0,
+                    z: -3.0
+                }
+                && bb.max
+                    == Point {
+                        x: 1.0,
+                        y: 1.0,
+                        z: -1.0
+                    }
         );
     }
 
     #[test]
     fn hit_sphere() {
         let sphere = Sphere {
-            center: Point{x: 0.0, y: 0.0, z: -2.0},
+            center: Point {
+                x: 0.0,
+                y: 0.0,
+                z: -2.0,
+            },
             radius: 1.0,
             material: Material::NormalView,
         };
 
-        let ray = Ray{
-            origin: Point{x: 0.0, y: 0.0, z: 0.0},
-            direction: Vec3{x: 0.0, y: 0.0, z: -1.0},
+        let ray = Ray {
+            origin: Point {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            direction: Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0,
+            },
             depth: 0,
-            color: Color{r: 1.0, g: 1.0, b: 1.0},
+            color: Color {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+            },
         };
 
         let hit = sphere.hit(&ray, 0.0, f32::INFINITY);
@@ -170,16 +223,32 @@ mod tests {
     #[test]
     fn miss_sphere() {
         let sphere = Sphere {
-            center: Point{x: 0.0, y: 100.0, z: -2.0},
+            center: Point {
+                x: 0.0,
+                y: 100.0,
+                z: -2.0,
+            },
             radius: 1.0,
             material: Material::NormalView,
         };
 
-        let ray = Ray{
-            origin: Point{x: 0.0, y: 0.0, z: 0.0},
-            direction: Vec3{x: 0.0, y: 0.0, z: -1.0},
+        let ray = Ray {
+            origin: Point {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            direction: Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: -1.0,
+            },
             depth: 0,
-            color: Color{r: 1.0, g: 1.0, b: 1.0},
+            color: Color {
+                r: 1.0,
+                g: 1.0,
+                b: 1.0,
+            },
         };
 
         let hit = sphere.hit(&ray, 0.0, f32::INFINITY);

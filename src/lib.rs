@@ -33,12 +33,13 @@ pub fn trace_rays(width: u32, height: u32, aa: u32) -> Image {
     );
 
     // world
-    let world = cover_scene();
+    // let world = cover_scene();
+    let world = aabb::bvh_tree_from(&mut cover_scene()[..]).expect("Failed to assemble the world BVH!");
 
     // render
     for j in 0..image_height {
         for i in 0..image_width {
-            let color = cam.get_color(&world, i, j);
+            let color = cam.get_color_fast(&world, i, j);
             image.write_color(i, j, color);
         }
     }
@@ -78,7 +79,8 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
     // let world = scene_14();
     // let world = scene_18();
     println!("Creating world...");
-    let world = aabb::bvh_tree_from(&mut cover_scene()[..]).unwrap();
+    // let world = cover_scene();
+    let world = aabb::bvh_tree_from(&mut cover_scene()[..]).expect("Failed to assemble the world BVH!");
     // let world = aabb::bvh_tree_from(&mut scene_10()[..]).unwrap();
 
     // render
@@ -88,6 +90,7 @@ pub fn trace_rays_parallel(width: u32, height: u32, aa: u32) -> Image {
             // println!("Tracing row {}...", j);
             for i in 0..image_width {
                 let color = cam.get_color_fast(&world, i, j);
+                // let color = cam.get_color(&world, i, j);
                 row[3*i + 0] = (color.r.sqrt() * 256.) as u8;
                 row[3*i + 1] = (color.g.sqrt() * 256.) as u8;
                 row[3*i + 2] = (color.b.sqrt() * 256.) as u8;
